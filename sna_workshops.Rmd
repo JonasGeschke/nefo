@@ -15,11 +15,12 @@ output:
 ---
 
 # Einleitung
-Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage des NeFo-Forschungsatlas und der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Die komplette Netzwerkanalyse ist einsehbar unter
+Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Die komplette Netzwerkanalyse ist einsehbar unter
 XXX
 
 Links for later:
 http://tools.medialab.sciences-po.fr/iwanthue/
+
 http://jfaganuk.github.io/2015/01/24/basic-network-analysis/#centrality-and-power-measures
 
 
