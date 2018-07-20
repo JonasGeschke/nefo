@@ -1,0 +1,9 @@
+---
+title: "Utility links"
+author: "Jonas Geschke"
+date: "2018"
+---
+
+http://tools.medialab.sciences-po.fr/iwanthue/
+http://jfaganuk.github.io/2015/01/24/basic-network-analysis/#centrality-and-power-measures
+https://jokergoo.github.io/circlize_book/book/
