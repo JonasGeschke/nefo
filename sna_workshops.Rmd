@@ -115,14 +115,15 @@ subset_workshops <- function(Gdata, subset = "all"){
   else {print("Please set subset: ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017 or 2018")}
 }
 
-create_nodes_workshops <- function(Gdata){
+create_nodes_workshops_1mode <- function(Gdata){
   #preparation
   Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
   Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
-  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))], 1, paste, collapse = "-")
-  todelete <- paste(replicate((ncol(Gdata)-5), "0"), collapse = "-")
-  Gdata <- Gdata[-c(which(Gdata[,ncol(Gdata)] == todelete)),]
-  Gdata <- Gdata[,-ncol(Gdata)]
+  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
+#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))], 1, paste, collapse = "-")
+#  todelete <- paste(replicate((ncol(Gdata)-5), "0"), collapse = "-")
+#  Gdata <- Gdata[-c(which(Gdata[,ncol(Gdata)] == todelete)),]
+#  Gdata <- Gdata[,-ncol(Gdata)]
   
   if(any(Gdata$Inst == "Selbstständig")==TRUE){
     selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
@@ -173,37 +174,42 @@ create_nodes_workshops <- function(Gdata){
   nodes[c(1:ncol(Gdata)),4] <- "workshop"
   nodes[c((ncol(Gdata)+1):nrow(nodes)),4] <- "institution"
   nodes$kategorie <- NA
-  nodes[c(1:ncol(Gdata)),5] <- as.character(WS_info$Kategorie)[which(WS_info[,1] 
-                                                                     %in% nodes[c(1:ncol(Gdata)),2])]
+  nodes[c(1:ncol(Gdata)),5] <- as.character(WS_info$Kategorie)[which(WS_info[,1] %in% nodes[c(1:ncol(Gdata)),2])]
   nodes[c((ncol(Gdata)+1):nrow(nodes)),5] <- Gdata_K
   nodes$id <- as.character(nodes$id)
   nodes$name <- as.character(nodes$name)
   
-  nodes$name[which(nodes$name %in% selbststaendig_Gdata)] <- "Selbstst?ndig"
-  nodes$name[which(nodes$name %in% keineangabe_Gdata)] <- "k.A."
+#  nodes$name[which(nodes$name %in% selbststaendig_Gdata)] <- "Selbstständig"
+#  nodes$name[which(nodes$name %in% keineangabe_Gdata)] <- "k.A."
+  
+  nodes <- subset(nodes, (nodes$type_no == 2))
   
   return(nodes)
 }
 
-create_links_workshops <- function(Gdata){
+create_links_workshops_1mode <- function(Gdata){
   #preparation
   Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
   Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
-  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))],1,paste,collapse="-")
-  Gdata <- Gdata[-c(which(Gdata$overview == paste(replicate((ncol(Gdata)-5), "0"), collapse = "-"))),]
-  Gdata <- Gdata[,-ncol(Gdata)]
+  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
+#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))],1,paste,collapse="-")
+#  Gdata <- Gdata[-c(which(Gdata$overview == paste(replicate((ncol(Gdata)-5), "0"), collapse = "-"))),]
+#  Gdata <- Gdata[,-ncol(Gdata)]
   
-  selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
-  selbststaendig <- c(1:length(selbststaendig_alt))
-  selbststaendig_Gdata <- c(paste("Selbstständig", selbststaendig, sep=" "))
-  keineangabe_alt <- c(which(Gdata$Inst == "keine Angabe"))
-  keineangabe <- c(1:length(keineangabe_alt))
-  keineangabe_Gdata <- c(paste("keine Angabe", keineangabe, sep=" "))
-  for (r in selbststaendig_alt){
+  if(any(Gdata$Inst == "Selbstständig")==TRUE){
+    selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
+    selbststaendig <- c(1:length(selbststaendig_alt))
+    selbststaendig_Gdata <- c(paste("Selbstständig", selbststaendig, sep=" "))
+    for (r in selbststaendig_alt){
     Gdata[r,2] <- selbststaendig_Gdata[which(selbststaendig_alt == r)]}
-  for (k in keineangabe_alt){
+    rm(r)}
+  if(any(Gdata$Inst == "keine Angabe")==TRUE){
+    keineangabe_alt <- c(which(Gdata$Inst == "keine Angabe"))
+    keineangabe <- c(1:length(keineangabe_alt))
+    keineangabe_Gdata <- c(paste("keine Angabe", keineangabe, sep=" "))
+    for (k in keineangabe_alt){
     Gdata[k,2] <- keineangabe_Gdata[which(keineangabe_alt == k)]}
-  rm(r, k)
+    rm(k)}
   
   institutions <- c(paste(sort(unique(Gdata$Inst))))
   Gdata_institutions <- Gdata[-c(1:nrow(Gdata)),]
@@ -224,6 +230,13 @@ create_links_workshops <- function(Gdata){
   rm(inst, i, institutions)
   
   ## links
+  w1 <- colnames(Gdata[1:ncol(Gdata)])
+  w2 <- rownames(Gdata)
+  w3 <- c(paste("ws", c(1:ncol(Gdata)), sep = ""))
+  w4 <- c(paste("inst", c(1:nrow(Gdata)), sep = ""))
+  w5 <- c(w3, w4)
+  w6 <- c(w1, w2)
+  
   columnno <- c(1:ncol(Gdata))
   rowno <- c(1:nrow(Gdata))
   
@@ -232,7 +245,7 @@ create_links_workshops <- function(Gdata){
                         stringsAsFactors = FALSE)
    for (c in columnno){
     for (r in rowno){
-      if (as.numeric(Gdata[r,c]) == 1) {
+      if (as.numeric(Gdata[r,c]) != 0) {
         links_w <- rbind(links_w,
                          c(w3[c], w4[r], as.numeric(c), colnames(Gdata)[c]), 
                          stringsAsFactors = FALSE)
@@ -266,10 +279,150 @@ create_links_workshops <- function(Gdata){
   
   return(links)
 }
+
+create_nodes_workshops_2mode <- function(Gdata){
+  #preparation
+  Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
+  Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
+  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
+#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))], 1, paste, collapse = "-")
+#  todelete <- paste(replicate((ncol(Gdata)-5), "0"), collapse = "-")
+#  Gdata <- Gdata[-c(which(Gdata[,ncol(Gdata)] == todelete)),]
+#  Gdata <- Gdata[,-ncol(Gdata)]
+  
+  if(any(Gdata$Inst == "Selbstständig")==TRUE){
+    selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
+    selbststaendig <- c(1:length(selbststaendig_alt))
+    selbststaendig_Gdata <- c(paste("Selbstständig", selbststaendig, sep=" "))
+    for (r in selbststaendig_alt){
+    Gdata[r,2] <- selbststaendig_Gdata[which(selbststaendig_alt == r)]}
+    rm(r)}
+  if(any(Gdata$Inst == "keine Angabe")==TRUE){
+    keineangabe_alt <- c(which(Gdata$Inst == "keine Angabe"))
+    keineangabe <- c(1:length(keineangabe_alt))
+    keineangabe_Gdata <- c(paste("keine Angabe", keineangabe, sep=" "))
+    for (k in keineangabe_alt){
+    Gdata[k,2] <- keineangabe_Gdata[which(keineangabe_alt == k)]}
+    rm(k)}
+  
+  institutions <- c(paste(sort(unique(Gdata$Inst))))
+  Gdata_institutions <- Gdata[-c(1:nrow(Gdata)),]
+  columnstosum <- c(5:ncol(Gdata))
+  
+  for (i in institutions){
+    inst <- subset(Gdata, Gdata$Inst == i)
+    inst <- rbind(inst,
+                  c(paste(inst[1,1]), paste(inst[1,2]), paste(inst[1,3]), paste(inst[1,4]),
+                    colSums(inst[,-c(1:4)])),
+                  stringsAsFactors = FALSE)
+    Gdata_institutions <- rbind(Gdata_institutions, inst[nrow(inst),])
+  }
+  rownames(Gdata_institutions) <- Gdata_institutions[,2] #Inst as rownames
+  Gdata_K <- as.character(Gdata_institutions$Kategorie)
+  Gdata <- Gdata_institutions[,-c(1:4)]
+  Gdata_institutions <- institutions
+  rm(inst, i, institutions)
+  
+  #nodes
+  w1 <- colnames(Gdata[1:ncol(Gdata)])
+  w2 <- rownames(Gdata)
+  w3 <- c(paste("ws", c(1:ncol(Gdata)), sep = ""))
+  w4 <- c(paste("inst", c(1:nrow(Gdata)), sep = ""))
+  w5 <- c(w3, w4)
+  w6 <- c(w1, w2)
+  nodes <- as.data.frame(cbind(w5, w6))
+  names(nodes) <- c("id", "name")
+  nodes$type_no <- NA
+  nodes[c(1:ncol(Gdata)),3] <- 1
+  nodes[c((ncol(Gdata)+1):nrow(nodes)),3] <- 2
+  nodes$type <- NA
+  nodes[c(1:ncol(Gdata)),4] <- "workshop"
+  nodes[c((ncol(Gdata)+1):nrow(nodes)),4] <- "institution"
+  nodes$kategorie <- NA
+  nodes[c(1:ncol(Gdata)),5] <- as.character(WS_info$Kategorie)[which(WS_info[,1] %in% nodes[c(1:ncol(Gdata)),2])]
+  nodes[c((ncol(Gdata)+1):nrow(nodes)),5] <- Gdata_K
+  nodes$id <- as.character(nodes$id)
+  nodes$name <- as.character(nodes$name)
+  
+#  nodes$name[which(nodes$name %in% selbststaendig_Gdata)] <- "Selbstständig"
+#  nodes$name[which(nodes$name %in% keineangabe_Gdata)] <- "k.A."
+  
+  return(nodes)
+}
+
+create_links_workshops_2mode <- function(Gdata){
+  #preparation
+  Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
+  Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
+  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
+#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))],1,paste,collapse="-")
+#  Gdata <- Gdata[-c(which(Gdata$overview == paste(replicate((ncol(Gdata)-5), "0"), collapse = "-"))),]
+#  Gdata <- Gdata[,-ncol(Gdata)]
+  
+  if(any(Gdata$Inst == "Selbstständig")==TRUE){
+    selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
+    selbststaendig <- c(1:length(selbststaendig_alt))
+    selbststaendig_Gdata <- c(paste("Selbstständig", selbststaendig, sep=" "))
+    for (r in selbststaendig_alt){
+    Gdata[r,2] <- selbststaendig_Gdata[which(selbststaendig_alt == r)]}
+    rm(r)}
+  if(any(Gdata$Inst == "keine Angabe")==TRUE){
+    keineangabe_alt <- c(which(Gdata$Inst == "keine Angabe"))
+    keineangabe <- c(1:length(keineangabe_alt))
+    keineangabe_Gdata <- c(paste("keine Angabe", keineangabe, sep=" "))
+    for (k in keineangabe_alt){
+    Gdata[k,2] <- keineangabe_Gdata[which(keineangabe_alt == k)]}
+    rm(k)}
+  
+  institutions <- c(paste(sort(unique(Gdata$Inst))))
+  Gdata_institutions <- Gdata[-c(1:nrow(Gdata)),]
+  columnstosum <- c(5:ncol(Gdata))
+  
+  for (i in institutions){
+    inst <- subset(Gdata, Gdata$Inst == i)
+    inst <- rbind(inst,
+                  c(paste(inst[1,1]), paste(inst[1,2]), paste(inst[1,3]), paste(inst[1,4]),
+                    colSums(inst[,-c(1:4)])),
+                  stringsAsFactors = FALSE)
+    Gdata_institutions <- rbind(Gdata_institutions, inst[nrow(inst),])
+  }
+  rownames(Gdata_institutions) <- Gdata_institutions[,2] #Inst as rownames
+  Gdata_K <- as.character(Gdata_institutions$Kategorie)
+  Gdata <- Gdata_institutions[,-c(1:4)]
+  Gdata_institutions <- institutions
+  rm(inst, i, institutions)
+  
+  ## links
+  w1 <- colnames(Gdata[1:ncol(Gdata)])
+  w2 <- rownames(Gdata)
+  w3 <- c(paste("ws", c(1:ncol(Gdata)), sep = ""))
+  w4 <- c(paste("inst", c(1:nrow(Gdata)), sep = ""))
+  w5 <- c(w3, w4)
+  w6 <- c(w1, w2)
+  
+  columns_Gdata <- c(1:ncol(Gdata))
+  rows_Gdata <- c(1:nrow(Gdata))
+  
+  links <- data.frame(from=character(), to=character(), type=character(), no_participants=numeric(), stringsAsFactors = FALSE)
+  
+  for (c in columns_Gdata){
+    for (r in rows_Gdata){
+      if (Gdata[r,c]!=0){
+        links <- rbind(links,
+                       c(w3[c], w4[r], "participated", Gdata[r,c]),
+                       stringsAsFactors = FALSE)
+      } else {}
+    }
+  }
+  colnames(links) <- c("from", "to", "type", "no_participants")
+  links$no_participants <- as.numeric(links$no_participants)
+  
+  return(links)
+}
 ```
 
 
-# NeFo-Workshops
+# Analyse
 
 ```{r Laden der Rohdaten - RUN, eval=FALSE}
 library(xlsx)
@@ -325,36 +478,33 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata_2017 <- subset_workshops(Gdata_WS, subset = "2017")
+Gdata <- subset_workshops(Gdata_WS, subset = "2017")
 ```
 
 ```{r Graph-objects, eval=FALSE}
 library(igraph)
 
 # 1-mode
-nodes_ws <- create_nodes(Gdata_2017, datatype = "workshops")
-links_ws <- create_links(Gdata_2017, datatype = "workshops")
-ws1 <- graph_from_data_frame(d = nodes_ws, vertices = links_ws, directed = F)
+nodes_ws1 <- create_nodes_workshops_1mode(Gdata)
+links_ws1 <- create_links_workshops_1mode(Gdata)
+ws1 <- graph_from_data_frame(d = links_ws1, vertices = nodes_ws1, directed = F)
 
 # 2-mode
-fn2 <- graph.incidence(Gdata_FN)
-fn2_cut <- delete.isolates(fn2)
+nodes_ws2 <- create_nodes_workshops_2mode(Gdata)
+links_ws2 <- create_links_workshops_2mode(Gdata)
+ws2 <- graph_from_data_frame(d = links_ws2, vertices = nodes_ws2, directed = F)
 
 # Berechnung statistischer Standardwerte
-V(fn1)$degree <- degree(fn1)
-V(fn1)$betweenness <- betweenness(fn1, directed = F)
-V(fn1_cut)$degree <- degree(fn1_cut)
-V(fn1_cut)$betweenness <- betweenness(fn1_cut, directed = F)
-V(fn2)$degree <- degree(fn2)
-V(fn2)$betweenness <- betweenness(fn2, directed = F)
-V(fn2_cut)$degree <- degree(fn2_cut)
-V(fn2_cut)$betweenness <- betweenness(fn2_cut, directed = F)
+V(ws1)$degree <- degree(ws1)
+V(ws1)$betweenness <- betweenness(ws1, directed = F)
+V(ws2)$degree <- degree(ws2)
+V(ws2)$betweenness <- betweenness(ws2, directed = F)
 
 detach("package:igraph", unload=TRUE)
 ```
 
-```{r SNA, eval=FALSE}
-forschungsnetzwerke_sna <- data.frame(name = append(colnames(Gdata_FN),rownames(Gdata_FN)))
+```{r SNA EDIT, eval=FALSE}
+workshops_sna <- data.frame(name = append(colnames(Gdata_FN),rownames(Gdata_FN)))
 forschungsnetzwerke_sna$fullname <- NA
 forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),2] <- paste(Raw_forschungsnetzwerk$Name)
 forschungsnetzwerke_sna$type <- NA
@@ -389,7 +539,86 @@ xlsx::write.xlsx(forschungsnetzwerke_sna, file = "SNA_Statistik_Forschungsnetzwe
 
 igraph::graph.density(fn1)
 igraph::graph.density(fn1_cut)
+
+
+ntw_WS_ipbesforen <- network::network(Gdata_WS_ipbesforen)
+summary(ntw_WS_ipbesforen)
+igraph::graph.density(igraph::graph.incidence(Gdata_WS_ipbesforen))
+
+round(sna::betweenness(ntw_WS_ipbesforen))
+betw_values_WS_ipbesforen <- data.frame(betweenness = round(sna::betweenness(ntw_WS_ipbesforen)), actor_abbr = c(row.names(Gdata_WS_ipbesforen), c("1", "2", "3", "4", "5", "6")), kat = c(Gdata_WS_ipbesforen_K, nodes_ipbesforen[c(1:6),5]))
+betw_values_WS_ipbesforen <- sort(betw_values_WS_ipbesforen, decreasing = T)
+xlsx::write.xlsx(betw_values_WS_ipbesforen, file = "Workshops_ipbesforen_betweenness.xls")
 ```
+
+
+# Visualisierung
+
+```{r igraph EDIT, eval=FALSE}
+library(igraph)
+library(RColorBrewer)
+
+## Berechnung einer Farbpalette
+coul6 <- brewer.pal(6, "YlOrBr")
+palette_ipbesforen <- as.numeric(degree(WS_ipbesforen))  # Farbpalette entsprechend vertex.size
+farben_ipbesforen <- coul6[palette_ipbesforen]
+farben_ipbesforen[1:6] <- "dark grey"
+
+## Plotten 1
+V(WS_ipbesforen)$vertex.size <- 3 * V(WS_ipbesforen)$degree / max(V(WS_ipbesforen)$degree) + 5
+V(WS_ipbesforen)$label.cex <- 1.5 * V(WS_ipbesforen)$betweenness / max(V(WS_ipbesforen)$betweenness)+ 0.5
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "workshop"] <- rgb(69,121,163,max=255)
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "institution"] <- "light grey"
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "institution"] <- "light grey" # Institution in FN
+E(WS_ipbesforen)$color <- "light grey" #rgb(173,198,70,max=255)
+
+lyout_WS_ipbesforen <- layout.fruchterman.reingold(WS_ipbesforen)
+
+plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = farben_ipbesforen,
+     vertex.label = V(WS_ipbesforen)$name, vertex.label.family = "Calibri",
+     vertex.frame.color = NA, vertex.label.color = "black",
+     edge.arrow.size = 0,
+     layout = lyout_WS_ipbesforen)
+plot(WS_ipbesforen, vertex.size = 3, vertex.color = farben_ipbesforen,
+     vertex.label = NA, vertex.label.family = "Calibri",
+     vertex.frame.color = "black", vertex.label.color = "black",
+     edge.arrow.size = 0,
+     layout = lyout_WS_ipbesforen)
+
+## Plotten 2
+V(WS_ipbesforen)$vertex.size <- 3 * V(WS_ipbesforen)$degree / max(V(WS_ipbesforen)$degree) + 5
+V(WS_ipbesforen)$label.cex <- 1.5 * V(WS_ipbesforen)$betweenness / max(V(WS_ipbesforen)$betweenness)+ 0.5
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "workshop"] <- "dark grey"
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Wissenschaft"] <- rgb(92,139,255,max=255)
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
+V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
+E(WS_ipbesforen)$color <- "light grey"
+
+plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = V(WS_ipbesforen)$color,
+     vertex.label = NA, vertex.label.family = "Calibri", #V(WS_ipbesforen)$name
+     vertex.frame.color = "black", vertex.label.color = "black",
+     edge.arrow.size = 0,
+     layout = lyout_WS_ipbesforen)
+
+par(mfrow=c(1,2))
+plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = farben_ipbesforen,
+     vertex.label = V(WS_ipbesforen)$name, vertex.label.family = "Calibri",
+     vertex.frame.color = NA, vertex.label.color = "black",
+     edge.arrow.size = 0,
+     layout = lyout_WS_ipbesforen)
+plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = V(WS_ipbesforen)$color,
+     vertex.label = NA, vertex.label.family = "Calibri", #V(WS_ipbesforen)$name
+     vertex.frame.color = "black", vertex.label.color = "black",
+     edge.arrow.size = 0,
+     layout = lyout_WS_ipbesforen)
+
+detach("package:igraph", unload=TRUE)
+detach("package:RColorBrewer", unload=TRUE)
+```
+
 
 
 
