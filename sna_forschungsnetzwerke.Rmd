@@ -19,12 +19,6 @@ Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage des NeFo-Forschu
 Die Netzwerkanalyse selbst ist verfügbar unter XXX
 
 
-Links for later:
-http://tools.medialab.sciences-po.fr/iwanthue/
-
-http://jfaganuk.github.io/2015/01/24/basic-network-analysis/#centrality-and-power-measures
-
-
 # Einstellungen
 
 ```{r set wd - CHOOSE, eval=FALSE}
