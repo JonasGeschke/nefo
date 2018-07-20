@@ -71,7 +71,7 @@ delete.isolates <- function(graph, mode = "all"){
   delete.vertices(graph, isolates)
 }
 
-create_nodes_forschungsnetzwerke <- function(Gdata){
+create_nodes_forschungsnetzwerke_1mode <- function(Gdata){
     w1 <- colnames(Gdata)
     w2 <- rownames(Gdata)
     w3 <- c(paste("net", c(1:ncol(Gdata)), sep = ""))
@@ -85,7 +85,7 @@ create_nodes_forschungsnetzwerke <- function(Gdata){
     return(nodes)
 }
 
-create_links_forschungsnetzwerke <- function(Gdata){
+create_links_forschungsnetzwerke_1mode <- function(Gdata){
     w1 <- colnames(Gdata)
     w2 <- rownames(Gdata)
     w3 <- c(paste("net", c(1:ncol(Gdata)), sep = ""))
@@ -167,8 +167,8 @@ Gdata_FN$`GBIF-D` <- as.numeric(Gdata_FN$`GBIF-D`)
 library(igraph)
 
 # 1-mode
-nodes_fn_inst <- create_nodes_forschungsnetzwerke(Gdata_FN)
-links_fn_inst <- create_links_forschungsnetzwerke(Gdata_FN)
+nodes_fn_inst <- create_nodes_forschungsnetzwerke_1mode(Gdata_FN)
+links_fn_inst <- create_links_forschungsnetzwerke_1mode(Gdata_FN)
 fn1 <- graph_from_data_frame(d = links_fn_inst, vertices = nodes_fn_inst, directed = F)
 fn1_cut <- delete.isolates(fn1)
 
@@ -232,7 +232,7 @@ detach("package:igraph", unload=TRUE)
 ```
 
 
-#Visualisierung
+# Visualisierung
 
 ```{r circlize, eval=FALSE}
 library(circlize)
