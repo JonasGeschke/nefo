@@ -33,11 +33,9 @@ Die Netzwerkanalyse selbst ist verfügbar unter XXX
 
 #setwd("/Volumes/NO NAME/MfN/Netzwerkanalyse_NeFo/R") # Stick
 setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_NeFo/R") # Buero
-
-load("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_NeFo/R/Netzwerkanalyse_NeFo.RData")
 ```
 
-```{r install packages - RUN, eval=FALSE}
+```{r install packages, eval=FALSE}
 # Installing required packages if not installed yet
 if("statnet" %in% rownames(installed.packages())   == FALSE){
   install.packages("statnet")}
@@ -63,7 +61,7 @@ if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
 ```
 
-```{r set additional functions - RUN, eval=FALSE}
+```{r set additional functions, eval=FALSE}
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
