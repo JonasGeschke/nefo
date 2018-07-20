@@ -190,6 +190,8 @@ detach("package:igraph", unload=TRUE)
 ```
 
 ```{r SNA, eval=FALSE}
+library(igraph)
+
 forschungsnetzwerke_sna <- data.frame(name = append(colnames(Gdata_FN),rownames(Gdata_FN)))
 forschungsnetzwerke_sna$fullname <- NA
 forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),2] <- paste(Raw_forschungsnetzwerk$Name)
@@ -204,12 +206,12 @@ forschungsnetzwerke_sna$betweenness2 <- NA
 
 rows1 <- c((ncol(Gdata_FN)+1):nrow(forschungsnetzwerke_sna))
 rows2 <- c(1:ncol(Gdata_FN))
-forschungsnetzwerke_sna[rows1,5] <- igraph::degree(fn1)
-forschungsnetzwerke_sna[rows1,6] <- round(igraph::betweenness(fn1),digits=2)
-forschungsnetzwerke_sna[rows1,7] <- igraph::degree(fn2)[1:nrow(Gdata_FN)]
-forschungsnetzwerke_sna[rows2,7] <- igraph::degree(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]
-forschungsnetzwerke_sna[rows1,8] <- round((igraph::betweenness(fn2)[1:nrow(Gdata_FN)]),digits=2)
-forschungsnetzwerke_sna[rows2,8] <- round((igraph::betweenness(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]),digits=2)
+forschungsnetzwerke_sna[rows1,5] <- degree(fn1)
+forschungsnetzwerke_sna[rows1,6] <- round(betweenness(fn1),digits=2)
+forschungsnetzwerke_sna[rows1,7] <- degree(fn2)[1:nrow(Gdata_FN)]
+forschungsnetzwerke_sna[rows2,7] <- degree(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]
+forschungsnetzwerke_sna[rows1,8] <- round((betweenness(fn2)[1:nrow(Gdata_FN)]),digits=2)
+forschungsnetzwerke_sna[rows2,8] <- round((betweenness(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]),digits=2)
 
 forschungsnetzwerke_sna$degree1rel <- NA
 forschungsnetzwerke_sna$degree2rel <- NA
@@ -223,8 +225,10 @@ forschungsnetzwerke_sna[,12] <- round(forschungsnetzwerke_sna[,8] / max(forschun
 rm(rows1, rows2)
 xlsx::write.xlsx(forschungsnetzwerke_sna, file = "SNA_Statistik_Forschungsnetzwerke.xls")
 
-igraph::graph.density(fn1)
-igraph::graph.density(fn1_cut)
+graph.density(fn1)
+graph.density(fn1_cut)
+
+detach("package:igraph", unload=TRUE)
 ```
 
 
@@ -351,10 +355,10 @@ farben_fn2_cut_netzwerke[1:(length(degree(fn2_cut))-ncol(Gdata_FN))] <- NA
 
 
 # Plotten
-#lyout_fn2 <- layout.fruchterman.reingold(fn2)
+lyout_fn2 <- layout.fruchterman.reingold(fn2)
 #write.table(lyout_fn2, file = "lyout_fn2.csv")
-test <- as.matrix(sapply(read.table("lyout_fn2.csv"), as.numeric))#  as.matrix(read.table("lyout_fn2.csv"))
-#lyout_fn2_cut <- layout.fruchterman.reingold(fn2_cut)
+#test <- as.matrix(sapply(read.table("lyout_fn2.csv"), as.numeric))#  as.matrix(read.table("lyout_fn2.csv"))
+lyout_fn2_cut <- layout.fruchterman.reingold(fn2_cut)
 #write.table(lyout_fn2_cut, file = "lyout_fn2_cut.csv")
 
 ## Forschungsatlas gesamt mit Netzwerken
@@ -367,9 +371,11 @@ plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
      layout = test)
 
 ## Forschungsatlas cut mit Netzwerken
+V(fn2_cut)$color[V(fn2_cut)$type == TRUE] <- "grey" # Netzwerke
+V(fn2_cut)$color[V(fn2_cut)$type == FALSE] <- farben_fn1_cut[V(fn2_cut)$type == FALSE] # Institutionen
 E(fn2_cut)$color <- "grey"
 par(mfrow=c(1,1))
-plot(fn2_cut, vertex.size = 3, vertex.color = farben_fn2_cut,
+plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
      vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
@@ -382,7 +388,7 @@ plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_fn2)
-plot(fn2_cut, vertex.size = 3, vertex.color = farben_fn2_cut,
+plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
      vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
@@ -404,9 +410,9 @@ plot(fn2_cut_netzwerke, vertex.size = 3, vertex.color = V(fn2_cut_netzwerke)$col
 
 ## Forschungsnetzwerke Institutionen
 fn2_cut_institutionen <- fn2_cut
-V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == FALSE] <- farben_fn2_cut[V(fn2_cut_institutionen)$type == FALSE] # Institutionen
+V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == FALSE] <- farben_fn1_cut[V(fn2_cut_institutionen)$type == FALSE] # Institutionen
 V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == TRUE] <- "grey" # Netzwerke
-V(fn2_cut_institutionen)$label.cex[V(fn2_cut_institutionen)$type == FALSE] <- 1.5 * V(fn2_cut_institutionen)$betweenness[V(fn2_cut_institutionen)$type == FALSE] / max(V(fn2_cut_institutionen)$betweenness[V(fn2_cut_institutionen)$type == FALSE])+ 0.5 # Institutionen
+V(fn2_cut_institutionen)$label.cex[V(fn2_cut_institutionen)$type == FALSE] <- 1.5 * V(fn1_cut)$betweenness[V(fn2_cut_institutionen)$type == FALSE] / max(V(fn1_cut)$betweenness[V(fn2_cut_institutionen)$type == FALSE])+ 0.5 # Institutionen
 V(fn2_cut_institutionen)$name[V(fn2_cut_institutionen)$type == TRUE] <- NA # Netzwerke
 par(mfrow=c(1,1))
 plot(fn2_cut_institutionen, vertex.size = 3, vertex.color = V(fn2_cut_institutionen)$color,
