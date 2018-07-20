@@ -1,5 +1,5 @@
 ---
-title: "NeFo-Forschungsatlas Soziale Netzwerkanalyse"
+title: "Soziale Netzwerkanalyse: NeFo-Forschungsatlas"
 author: "Jonas Geschke"
 date: "2017, 2018"
 header-includes:
@@ -15,8 +15,9 @@ output:
 ---
 
 # Einleitung
-Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage des NeFo-Forschungsatlas. Die komplette Netzwerkanalyse ist einsehbar unter
-XXX
+Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage des NeFo-Forschungsatlas. Das Skrpit ist verfügbar unter https://github.com/JonasGeschke/nefo
+Die Netzwerkanalyse selbst ist verfügbar unter XXX
+
 
 Links for later:
 http://tools.medialab.sciences-po.fr/iwanthue/
@@ -143,7 +144,7 @@ create_links_forschungsnetzwerke <- function(Gdata){
 ```
 
 
-# Forschungsnetzwerke
+# Analyse
 
 ```{r Laden der Rohdaten und Vorbereitung der Daten, eval=FALSE}
 ## Load raw data
@@ -233,6 +234,9 @@ xlsx::write.xlsx(forschungsnetzwerke_sna, file = "SNA_Statistik_Forschungsnetzwe
 igraph::graph.density(fn1)
 igraph::graph.density(fn1_cut)
 ```
+
+
+#Visualisierung
 
 ```{r circlize, eval=FALSE}
 library(circlize)
@@ -435,6 +439,7 @@ plot(fn2_cut_institutionen, vertex.size = 3, vertex.color = V(fn2_cut_institutio
 detach("package:igraph", unload=TRUE)
 detach("package:RColorBrewer", unload=TRUE)
 ```
+
 
 # NeFo-Workshops
 

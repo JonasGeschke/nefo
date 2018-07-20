@@ -1,5 +1,5 @@
 ---
-title: "NeFo-Workshops Soziale Netzwerkanalyse"
+title: "Soziale Netzwerkanalyse: NeFo-Workshops"
 author: "Jonas Geschke"
 date: "2017, 2018"
 header-includes:
@@ -15,8 +15,8 @@ output:
 ---
 
 # Einleitung
-Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Die komplette Netzwerkanalyse ist einsehbar unter
-XXX
+Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Das Skrpit ist verfügbar unter https://github.com/JonasGeschke/nefo
+Die Netzwerkanalyse selbst ist verfügbar unter XXX
 
 Links for later:
 http://tools.medialab.sciences-po.fr/iwanthue/
