@@ -229,6 +229,15 @@ graph.density(fn1)
 graph.density(fn1_cut)
 
 detach("package:igraph", unload=TRUE)
+
+nrow(Gdata_FN[which(rowSums(Gdata_FN) == 0),])
+nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),])
+nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),])
+nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),])
+nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),])
+nrow(Gdata_FN[which(rowSums(Gdata_FN) > 5),])
+
+colSums(Gdata_FN)
 ```
 
 
@@ -309,12 +318,10 @@ library(igraph)
 library(RColorBrewer)
 
 # Berechnung der Farbpaletten
-coul5 <- brewer.pal(5, "YlOrBr")
 coul6 <- brewer.pal(6, "YlOrBr")
 coul7 <- brewer.pal(7, "YlOrBr")
 
 palette_fn1 <- as.numeric(degree(fn1)+1) # Farbpalette entsprechend vertex.size
-farben_fn1 <- coul7[palette_fn1]
 palette_fn1[which(palette_fn1 == 1)] <- 1
 palette_fn1[which(palette_fn1 %in% c(2:10))] <- 2
 palette_fn1[palette_fn1 %in% c(11:20)] <- 3
@@ -325,7 +332,6 @@ palette_fn1[palette_fn1 > 50] <- 7
 farben_fn1 <- coul7[palette_fn1]
 
 palette_fn1_cut <- as.numeric(degree(fn1_cut)+1) # Farbpalette entsprechend vertex.size
-farben_fn1_cut <- coul7[palette_fn1_cut]
 palette_fn1_cut[which(palette_fn1_cut == 1)] <- 1
 palette_fn1_cut[which(palette_fn1_cut %in% c(2:10))] <- 2
 palette_fn1_cut[palette_fn1_cut %in% c(11:20)] <- 3
@@ -368,7 +374,7 @@ plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
      vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.6,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
-     layout = test)
+     layout = lyout_fn2)
 
 ## Forschungsatlas cut mit Netzwerken
 V(fn2_cut)$color[V(fn2_cut)$type == TRUE] <- "grey" # Netzwerke
