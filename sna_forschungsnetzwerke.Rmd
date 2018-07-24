@@ -167,9 +167,9 @@ Gdata_FN$`GBIF-D` <- as.numeric(Gdata_FN$`GBIF-D`)
 library(igraph)
 
 # 1-mode
-nodes_fn_inst <- create_nodes_forschungsnetzwerke_1mode(Gdata_FN)
-links_fn_inst <- create_links_forschungsnetzwerke_1mode(Gdata_FN)
-fn1 <- graph_from_data_frame(d = links_fn_inst, vertices = nodes_fn_inst, directed = F)
+nodes_fn1 <- create_nodes_forschungsnetzwerke_1mode(Gdata_FN)
+links_fn1 <- create_links_forschungsnetzwerke_1mode(Gdata_FN)
+fn1 <- graph_from_data_frame(d = links_fn1, vertices = nodes_fn1, directed = F)
 fn1_cut <- delete.isolates(fn1)
 
 # 2-mode
