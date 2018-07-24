@@ -478,7 +478,7 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "2017")
+Gdata <- subset_workshops(Gdata_WS, subset = "all")
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -504,51 +504,51 @@ detach("package:igraph", unload=TRUE)
 ```
 
 ```{r SNA EDIT, eval=FALSE}
-workshops_sna <- data.frame(name = append(colnames(Gdata_FN),rownames(Gdata_FN)))
-forschungsnetzwerke_sna$fullname <- NA
-forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),2] <- paste(Raw_forschungsnetzwerk$Name)
-forschungsnetzwerke_sna$type <- NA
-forschungsnetzwerke_sna[1:length(colnames(Gdata_FN)),3] <- "netzwerk"
-forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),3] <- "institution"
-forschungsnetzwerke_sna$kategorie <- NA
-forschungsnetzwerke_sna$degree1 <- NA
-forschungsnetzwerke_sna$betweenness1 <- NA
-forschungsnetzwerke_sna$degree2 <- NA
-forschungsnetzwerke_sna$betweenness2 <- NA
+library(igraph)
 
-rows1 <- c((ncol(Gdata_FN)+1):nrow(forschungsnetzwerke_sna))
-rows2 <- c(1:ncol(Gdata_FN))
-forschungsnetzwerke_sna[rows1,5] <- igraph::degree(fn1)
-forschungsnetzwerke_sna[rows1,6] <- round(igraph::betweenness(fn1),digits=2)
-forschungsnetzwerke_sna[rows1,7] <- igraph::degree(fn2)[1:nrow(Gdata_FN)]
-forschungsnetzwerke_sna[rows2,7] <- igraph::degree(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]
-forschungsnetzwerke_sna[rows1,8] <- round((igraph::betweenness(fn2)[1:nrow(Gdata_FN)]),digits=2)
-forschungsnetzwerke_sna[rows2,8] <- round((igraph::betweenness(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]),digits=2)
+workshops_sna <- data.frame(name = append(colnames(Gdata[-c(1:4)]),V(ws1)$name))
+workshops_sna$type <- NA
+workshops_sna[1:length(colnames(Gdata[-c(1:4)])),2] <- "workshop"
+workshops_sna[c((length(colnames(Gdata[-c(1:4)]))+1):nrow(workshops_sna)),2] <- "institution"
+workshops_sna$kategorie <- NA
+workshops_sna$degree1 <- NA
+workshops_sna$betweenness1 <- NA
+workshops_sna$degree2 <- NA
+workshops_sna$betweenness2 <- NA
 
-forschungsnetzwerke_sna$degree1rel <- NA
-forschungsnetzwerke_sna$degree2rel <- NA
-forschungsnetzwerke_sna$betweenness1rel <- NA
-forschungsnetzwerke_sna$betweenness2rel <- NA
-forschungsnetzwerke_sna[rows1,9] <- round(forschungsnetzwerke_sna[rows1,5] / max(forschungsnetzwerke_sna[rows1,5]),digits=2)
-forschungsnetzwerke_sna[,10] <- round(forschungsnetzwerke_sna[,7] / max(forschungsnetzwerke_sna[,7]),digits=2)
-forschungsnetzwerke_sna[rows1,11] <- round(forschungsnetzwerke_sna[rows1,6] / max(forschungsnetzwerke_sna[rows1,6]),digits=2)
-forschungsnetzwerke_sna[,12] <- round(forschungsnetzwerke_sna[,8] / max(forschungsnetzwerke_sna[,8]),digits=2)
+rows1 <- c((ncol(Gdata[-c(1:4)])+1):nrow(workshops_sna))
+rows2 <- c(1:ncol(Gdata[-c(1:4)]))
+workshops_sna[rows1,4] <- igraph::degree(ws1)
+workshops_sna[rows1,5] <- round(igraph::betweenness(ws1),digits=2)
+workshops_sna[,6] <- igraph::degree(ws2)[1:length(V(ws2)$name)]
+#workshops_sna[rows2,6] <- igraph::degree(ws2)[(nrow(Gdata)+1):nrow(workshops_sna)]
+workshops_sna[,7] <- round((igraph::betweenness(ws2)[1:length(V(ws2)$name)]),digits=2)
+#workshops_sna[rows2,7] <- round((igraph::betweenness(ws2)[(nrow(Gdata)+1):nrow(workshops_sna)]),digits=2)
+
+workshops_sna$degree1rel <- NA
+workshops_sna$degree2rel <- NA
+workshops_sna$betweenness1rel <- NA
+workshops_sna$betweenness2rel <- NA
+workshops_sna[rows1,9] <- round(workshops_sna[rows1,5] / max(workshops_sna[rows1,5]),digits=2)
+workshops_sna[,10] <- round(workshops_sna[,7] / max(workshops_sna[,7]),digits=2)
+workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows1,6]),digits=2)
+workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(forschungsnetzwerke_sna, file = "SNA_Statistik_Forschungsnetzwerke.xls")
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops.xls")
 
-igraph::graph.density(fn1)
-igraph::graph.density(fn1_cut)
+igraph::graph.density(ws1)
 
+#ntw_WS_ipbesforen <- network::network(Gdata_WS_ipbesforen)
+#summary(ntw_WS_ipbesforen)
+#igraph::graph.density(igraph::graph.incidence(Gdata_WS_ipbesforen))
 
-ntw_WS_ipbesforen <- network::network(Gdata_WS_ipbesforen)
-summary(ntw_WS_ipbesforen)
-igraph::graph.density(igraph::graph.incidence(Gdata_WS_ipbesforen))
+#round(sna::betweenness(ntw_WS_ipbesforen))
+#betw_values_WS_ipbesforen <- data.frame(betweenness = round(sna::betweenness(ntw_WS_ipbesforen)), actor_abbr = c(row.names(Gdata_WS_ipbesforen), c("1", "2", "3", "4", "5", "6")), kat = c(Gdata_WS_ipbesforen_K, nodes_ipbesforen[c(1:6),5]))
+#betw_values_WS_ipbesforen <- sort(betw_values_WS_ipbesforen, decreasing = T)
+#xlsx::write.xlsx(betw_values_WS_ipbesforen, file = "Workshops_ipbesforen_betweenness.xls")
 
-round(sna::betweenness(ntw_WS_ipbesforen))
-betw_values_WS_ipbesforen <- data.frame(betweenness = round(sna::betweenness(ntw_WS_ipbesforen)), actor_abbr = c(row.names(Gdata_WS_ipbesforen), c("1", "2", "3", "4", "5", "6")), kat = c(Gdata_WS_ipbesforen_K, nodes_ipbesforen[c(1:6),5]))
-betw_values_WS_ipbesforen <- sort(betw_values_WS_ipbesforen, decreasing = T)
-xlsx::write.xlsx(betw_values_WS_ipbesforen, file = "Workshops_ipbesforen_betweenness.xls")
+detach("package:igraph", unload=TRUE)
 ```
 
 
@@ -558,34 +558,35 @@ xlsx::write.xlsx(betw_values_WS_ipbesforen, file = "Workshops_ipbesforen_between
 library(igraph)
 library(RColorBrewer)
 
-## Berechnung einer Farbpalette
-coul6 <- brewer.pal(6, "YlOrBr")
-palette_ipbesforen <- as.numeric(degree(WS_ipbesforen))  # Farbpalette entsprechend vertex.size
-farben_ipbesforen <- coul6[palette_ipbesforen]
-farben_ipbesforen[1:6] <- "dark grey"
+# Berechnung einer Farbpalette
+coul7 <- brewer.pal(7, "YlOrBr")
+palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
+palette_ws1[which(palette_ws1 %in% c(1:100))] <- 1
+palette_ws1[palette_ws1 %in% c(101:200)] <- 3
+palette_ws1[palette_ws1 %in% c(201:300)] <- 4
+palette_ws1[palette_ws1 %in% c(301:400)] <- 5
+palette_ws1[palette_ws1 %in% c(401:500)] <- 6
+palette_ws1[palette_ws1 > 500] <- 7
+farben_ws1 <- coul7[palette_ws1]
 
-## Plotten 1
-V(WS_ipbesforen)$vertex.size <- 3 * V(WS_ipbesforen)$degree / max(V(WS_ipbesforen)$degree) + 5
-V(WS_ipbesforen)$label.cex <- 1.5 * V(WS_ipbesforen)$betweenness / max(V(WS_ipbesforen)$betweenness)+ 0.5
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "workshop"] <- rgb(69,121,163,max=255)
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "institution"] <- "light grey"
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "institution"] <- "light grey" # Institution in FN
-E(WS_ipbesforen)$color <- "light grey" #rgb(173,198,70,max=255)
+# Plotten
+lyout_ws <- layout.fruchterman.reingold(ws2)
 
-lyout_WS_ipbesforen <- layout.fruchterman.reingold(WS_ipbesforen)
+## Workshops alle
+E(ws2)$color <- "grey"
+V(ws2)$color[V(ws2)$type == "workshop"] <- "grey" # Workshops
+V(ws2)$color[V(ws2)$type == "institution"] <- farben_ws1#[V(ws2)$type == "institution"] # Institutionen
+V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
+V(ws2)$name[V(ws2)$type == "workshop"] <- NA # Netzwerke
 
-plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = farben_ipbesforen,
-     vertex.label = V(WS_ipbesforen)$name, vertex.label.family = "Calibri",
+par(mfrow=c(1,1))
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+     vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
-     layout = lyout_WS_ipbesforen)
-plot(WS_ipbesforen, vertex.size = 3, vertex.color = farben_ipbesforen,
-     vertex.label = NA, vertex.label.family = "Calibri",
-     vertex.frame.color = "black", vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_WS_ipbesforen)
+     layout = lyout_ws)
 
-## Plotten 2
+# Workshops alle: Kategorien ###EDIT###
 V(WS_ipbesforen)$vertex.size <- 3 * V(WS_ipbesforen)$degree / max(V(WS_ipbesforen)$degree) + 5
 V(WS_ipbesforen)$label.cex <- 1.5 * V(WS_ipbesforen)$betweenness / max(V(WS_ipbesforen)$betweenness)+ 0.5
 V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "workshop"] <- "dark grey"
@@ -597,6 +598,7 @@ V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Medien"] <- rgb(180,33,0,m
 V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
 E(WS_ipbesforen)$color <- "light grey"
 
+par(mfrow=c(1,1))
 plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = V(WS_ipbesforen)$color,
      vertex.label = NA, vertex.label.family = "Calibri", #V(WS_ipbesforen)$name
      vertex.frame.color = "black", vertex.label.color = "black",
