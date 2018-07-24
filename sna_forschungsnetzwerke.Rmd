@@ -252,7 +252,6 @@ library(RColorBrewer)
 # Berechnung einer Farbpalette
 coul7 <- brewer.pal(7, "YlOrBr")
 palette_fn1 <- as.numeric(igraph::degree(fn1)+1) # Farbpalette entsprechend vertex.size
-farben_fn1 <- coul7[palette_fn1]
 palette_fn1[which(palette_fn1 == 1)] <- 1
 palette_fn1[which(palette_fn1 %in% c(2:10))] <- 2
 palette_fn1[palette_fn1 %in% c(11:20)] <- 3
