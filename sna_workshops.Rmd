@@ -505,7 +505,7 @@ V(ws2)$betweenness <- betweenness(ws2, directed = F)
 detach("package:igraph", unload=TRUE)
 ```
 
-```{r SNA, eval=FALSE}
+```{r SNA EDIT, eval=FALSE}
 library(igraph)
 
 workshops_sna <- data.frame(name = append(colnames(Gdata[-c(1:4)]),V(ws1)$name))
@@ -537,7 +537,7 @@ workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows
 workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_alle.xls")
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_alle.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
