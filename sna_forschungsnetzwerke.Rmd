@@ -263,18 +263,18 @@ farben_fn1 <- coul7[palette_fn1]
 
 
 # Preparation von Zirkel-Links
-links_chord <- links_fn_inst
+links_chord <- links_fn1
 colno <- c(1,2)
 rowno <- c(1:nrow(links_chord))
 for (c in colno){
   for (r in rowno){
-    links_chord[r,c] <- nodes_fn_inst$name[which(nodes_fn_inst[,1] %in% links_chord[r,c])]
+    links_chord[r,c] <- nodes_fn1$name[which(nodes_fn1[,1] %in% links_chord[r,c])]
   }
 }
 rm(colno, rowno, c, r)
 links_chord <- links_chord[order(links_chord$network_no, links_chord$from, links_chord$to),]
 links_chord$value <- c(1:nrow(links_chord))
-institutions <- nodes_fn_inst$name
+institutions <- nodes_fn1$name
 farben10 <- c("greenyellow", "green", "forestgreen", "darkseagreen", "cornflowerblue", "lightslateblue", "navy", "red", "deeppink2", "chocolate4", "black")
 coul10 <- c()
 rowno <- c(1:nrow(links_chord))
@@ -286,7 +286,7 @@ names(links_chord) <- c("from", "to", "width", "network", "value")
 links_chord$width <- 1
 
 # Preparation der Reihenfolge des plottens
-order_chord <- data.frame(betweenness = round(igraph::betweenness(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F))), degree = igraph::degree(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F)), actor_abbr = nodes_fn_inst$name, gridcol = farben_fn1)
+order_chord <- data.frame(betweenness = round(igraph::betweenness(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F))), degree = igraph::degree(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F)), actor_abbr = nodes_fn1$name, gridcol = farben_fn1)
 order_chord <- order_chord[order(order_chord$degree),]
 gridcol <- as.vector(order_chord$gridcol)
 names(gridcol) <- order_chord$actor_abbr
@@ -366,11 +366,13 @@ lyout_fn2 <- layout.fruchterman.reingold(fn2)
 lyout_fn2_cut <- layout.fruchterman.reingold(fn2_cut)
 #write.table(lyout_fn2_cut, file = "lyout_fn2_cut.csv")
 
-## Forschungsatlas gesamt mit Netzwerken
 E(fn2)$color <- "grey"
+E(fn2_cut)$color <- "grey"
+
+## Forschungsatlas gesamt mit Netzwerken
 par(mfrow=c(1,1))
 plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
-     vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.6,
+     vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_fn2)
@@ -378,7 +380,6 @@ plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
 ## Forschungsatlas cut mit Netzwerken
 V(fn2_cut)$color[V(fn2_cut)$type == TRUE] <- "dark grey" # Netzwerke
 V(fn2_cut)$color[V(fn2_cut)$type == FALSE] <- farben_fn1_cut[V(fn2_cut)$type == FALSE] # Institutionen
-E(fn2_cut)$color <- "grey"
 par(mfrow=c(1,1))
 plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
      vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
@@ -402,7 +403,7 @@ plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
 ## Forschungsnetzwerke Netzwerke
 fn2_cut_netzwerke <- fn2_cut
 V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == TRUE] <- farben_fn2_cut_netzwerke[V(fn2_cut_netzwerke)$type == TRUE] # Netzwerke
-V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == FALSE] <- "grey" # Institutionen
+V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == FALSE] <- "dark grey" # Institutionen
 V(fn2_cut_netzwerke)$label.cex[V(fn2_cut_netzwerke)$type == TRUE] <- 1.5 * 
   V(fn2_cut_netzwerke)$betweenness[V(fn2_cut_netzwerke)$type == TRUE] / max(V(fn2_cut_netzwerke)$betweenness[V(fn2_cut_netzwerke)$type == TRUE])+ 0.5 # Netzwerke
 V(fn2_cut_netzwerke)$name[V(fn2_cut_netzwerke)$type == FALSE] <- NA # Institutionen
