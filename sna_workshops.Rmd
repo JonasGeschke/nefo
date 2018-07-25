@@ -561,7 +561,8 @@ library(RColorBrewer)
 # Berechnung einer Farbpalette
 coul7 <- brewer.pal(7, "YlOrBr")
 palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
-palette_ws1[which(palette_ws1 %in% c(1:100))] <- 1
+palette_ws1[which(palette_ws1 %in% c(1:50))] <- 1
+palette_ws1[palette_ws1 %in% c(51:100)] <- 2
 palette_ws1[palette_ws1 %in% c(101:200)] <- 3
 palette_ws1[palette_ws1 %in% c(201:300)] <- 4
 palette_ws1[palette_ws1 %in% c(301:400)] <- 5
@@ -574,10 +575,11 @@ lyout_ws <- layout.fruchterman.reingold(ws2)
 
 ## Workshops alle
 E(ws2)$color <- "grey"
-V(ws2)$color[V(ws2)$type == "workshop"] <- "grey" # Workshops
-V(ws2)$color[V(ws2)$type == "institution"] <- farben_ws1#[V(ws2)$type == "institution"] # Institutionen
+V(ws2)$color[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
+V(ws2)$color[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
+#V(ws2)$name[V(ws2)$type == "workshop"] <- NA # Workshops
+V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 0.5 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
-V(ws2)$name[V(ws2)$type == "workshop"] <- NA # Netzwerke
 
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
@@ -586,36 +588,32 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
      edge.arrow.size = 0,
      layout = lyout_ws)
 
-# Workshops alle: Kategorien ###EDIT###
-V(WS_ipbesforen)$vertex.size <- 3 * V(WS_ipbesforen)$degree / max(V(WS_ipbesforen)$degree) + 5
-V(WS_ipbesforen)$label.cex <- 1.5 * V(WS_ipbesforen)$betweenness / max(V(WS_ipbesforen)$betweenness)+ 0.5
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$type == "workshop"] <- "dark grey"
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Wissenschaft"] <- rgb(92,139,255,max=255)
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
-V(WS_ipbesforen)$color[V(WS_ipbesforen)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
-E(WS_ipbesforen)$color <- "light grey"
+# Workshops alle: Kategorien
+V(ws2)$color[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
+V(ws2)$color[V(ws2)$kategorie == "Wissenschaft"] <- rgb(92,139,255,max=255)
+V(ws2)$color[V(ws2)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
+V(ws2)$color[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
+V(ws2)$color[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
+V(ws2)$color[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
+V(ws2)$color[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
+E(ws2)$color <- "grey"
 
 par(mfrow=c(1,1))
-plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = V(WS_ipbesforen)$color,
-     vertex.label = NA, vertex.label.family = "Calibri", #V(WS_ipbesforen)$name
-     vertex.frame.color = "black", vertex.label.color = "black",
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+     vertex.label = NA, vertex.frame.color = "black", 
      edge.arrow.size = 0,
-     layout = lyout_WS_ipbesforen)
+     layout = lyout_ws)
 
 par(mfrow=c(1,2))
-plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = farben_ipbesforen,
-     vertex.label = V(WS_ipbesforen)$name, vertex.label.family = "Calibri",
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+     vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
-     layout = lyout_WS_ipbesforen)
-plot(WS_ipbesforen, vertex.size = V(WS_ipbesforen)$vertex.size, vertex.color = V(WS_ipbesforen)$color,
-     vertex.label = NA, vertex.label.family = "Calibri", #V(WS_ipbesforen)$name
-     vertex.frame.color = "black", vertex.label.color = "black",
+     layout = lyout_ws)
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+     vertex.label = NA, vertex.frame.color = "black", 
      edge.arrow.size = 0,
-     layout = lyout_WS_ipbesforen)
+     layout = lyout_ws)
 
 detach("package:igraph", unload=TRUE)
 detach("package:RColorBrewer", unload=TRUE)
@@ -624,7 +622,7 @@ detach("package:RColorBrewer", unload=TRUE)
 
 
 
-
+#Rest
 ### IPBES Nationale Foren
 ```{r Deskriptive Analyse, eval=FALSE}
 Gdata_WS_ipbesforen$Name <- as.character(Gdata_WS_ipbesforen$Name)
