@@ -243,6 +243,14 @@ colSums(Gdata_FN)
 
 # Visualisierung
 
+```{r Betweenness über Degree, eval=FALSE}
+plot(forschungsnetzwerke_sna[c(1:11),8] ~ forschungsnetzwerke_sna[c(1:11),7],
+     xlab = "Degree-Zentralität",
+     ylab = "Betweenness-Zentralität",
+     pch = 4)
+#abline(lm(forschungsnetzwerke_sna[c(1:11),8] ~ forschungsnetzwerke_sna[c(1:11),7]), col = "green")
+```
+
 ```{r circlize, eval=FALSE}
 library(circlize)
 library(statnet)
