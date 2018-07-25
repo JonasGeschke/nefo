@@ -469,7 +469,7 @@ rowno <- c(1:nrow(Gdata_WS))
 for (r in rowno){
   if ((Gdata_WS[r,2] == "keine Angabe") & (Gdata_WS[r,3] == "keine Angabe")){
   Gdata_WS[r,3] <- "Deutschland"}
-  if (Gdata_WS[r,4] == "Behärde"){
+  if (Gdata_WS[r,4] == "Behörde"){
     Gdata_WS[r,4] <- "Behoerde"}
   if (Gdata_WS[r,4] == "Verbände"){
     Gdata_WS[r,4] <- "Verbaende"}
@@ -503,7 +503,7 @@ V(ws2)$betweenness <- betweenness(ws2, directed = F)
 detach("package:igraph", unload=TRUE)
 ```
 
-```{r SNA EDIT, eval=FALSE}
+```{r SNA, eval=FALSE}
 library(igraph)
 
 workshops_sna <- data.frame(name = append(colnames(Gdata[-c(1:4)]),V(ws1)$name))
@@ -573,45 +573,53 @@ farben_ws1 <- coul7[palette_ws1]
 # Plotten
 lyout_ws <- layout.fruchterman.reingold(ws2)
 
-## Workshops alle
-E(ws2)$color <- "grey"
-V(ws2)$color[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
-V(ws2)$color[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
+## Farben und Größe
+E(ws2)$color_st <- "grey"
+E(ws2)$color_k <- "grey"
+V(ws2)$color_st[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
+V(ws2)$color_st[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
+V(ws2)$color_k[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
+V(ws2)$color_k[V(ws2)$kategorie == "Wissenschaft"] <- rgb(92,139,255,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
 #V(ws2)$name[V(ws2)$type == "workshop"] <- NA # Workshops
 V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 0.5 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
 
+## Workshops
 par(mfrow=c(1,1))
-plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_ws)
 
-# Workshops alle: Kategorien
-V(ws2)$color[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
-V(ws2)$color[V(ws2)$kategorie == "Wissenschaft"] <- rgb(92,139,255,max=255)
-V(ws2)$color[V(ws2)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
-V(ws2)$color[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
-V(ws2)$color[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
-V(ws2)$color[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
-V(ws2)$color[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
-E(ws2)$color <- "grey"
-
+## Workshops: Kategorien
 par(mfrow=c(1,1))
-plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = "black", 
      edge.arrow.size = 0,
      layout = lyout_ws)
 
+## Kombination
 par(mfrow=c(1,2))
-plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_ws)
-plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color,
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = "black", 
+     edge.arrow.size = 0,
+     layout = lyout_ws)
+
+# Cover
+par(mfrow=c(1,1))
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
+     vertex.label = NA, vertex.frame.color = "black",
      edge.arrow.size = 0,
      layout = lyout_ws)
 
