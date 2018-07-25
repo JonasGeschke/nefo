@@ -480,7 +480,7 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "all")
+Gdata <- subset_workshops(Gdata_WS, subset = "nefobiodiv")
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -537,7 +537,7 @@ workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows
 workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_alle.xls") ### EDIT
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_biodiv.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
@@ -555,6 +555,14 @@ detach("package:igraph", unload=TRUE)
 
 
 # Visualisierung
+
+```{r Betweenness über Degree, eval=FALSE}
+plot(workshops_sna$betweenness1 ~ workshops_sna$degree1,
+     xlab = "Degree-Zentralität",
+     ylab = "Betweenness-Zentralität",
+     pch = 4)
+#abline(lm(workshops_sna$betweenness1 ~ workshops_sna$degree1), col = "green")
+```
 
 ```{r igraph EDIT, eval=FALSE}
 library(igraph)
@@ -590,11 +598,15 @@ V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
 V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 0.5 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
 V(ws2)$vertex.size <- 3 * V(ws2)$degree / max(V(ws2)$degree) + 5
+V(ws2)$partnames <- V(ws2)$name
+V(ws2)$partnames[V(ws2)$type == "workshop"] <- NA
+V(ws2)$framecolorcover <- NA
+V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
 
 ## Workshops
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
-     vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
+     vertex.label = V(ws2)$partnames, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
@@ -602,25 +614,25 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
 ## Workshops: Kategorien
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
-     vertex.label = NA, vertex.frame.color = "black", 
+     vertex.label = NA, vertex.frame.color = framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
 ## Kombination
 par(mfrow=c(1,2))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
-     vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
+     vertex.label = V(ws2)$partnames, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
-     vertex.label = NA, vertex.frame.color = "black", 
+     vertex.label = NA, vertex.frame.color = framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
 # Cover
-V(ws2)$namecover <- V(ws2)$name
-V(ws2)$namecover[V(ws2)$type == "workshop"] <- NA
+V(ws2)$partnames <- V(ws2)$name
+V(ws2)$partnames[V(ws2)$type == "workshop"] <- NA
 V(ws2)$framecolorcover <- NA
 V(ws2)$framecolorcover[V(ws2)$type == "workshop"] <- "black"
 par(mfrow=c(1,1))
