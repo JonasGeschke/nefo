@@ -15,7 +15,7 @@ output:
 ---
 
 # Einleitung
-Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Das Skrpit ist verfügbar unter https://github.com/JonasGeschke/nefo
+Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Das Skrpit ist  verfügbar unter https://github.com/JonasGeschke/nefo
 Die Netzwerkanalyse selbst ist verfügbar unter XXX
 
 
@@ -72,7 +72,9 @@ delete.isolates <- function(graph, mode = "all"){
 }
 
 subset_workshops <- function(Gdata, subset = "all"){
-  if (subset == "all"){return(Gdata)}
+  if (subset == "all"){
+    Gdata <- Gdata[,-c(which(names(Gdata) %in% c("WS24", "WS28", "WS31", "WS39")))]
+    return(Gdata)}
   else if (subset == "ipbesforen"){
     Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS7", "WS20", "WS24", "WS28", "WS31", "WS39")))]
     return(Gdata)}
@@ -535,7 +537,7 @@ workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows
 workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops.xls")
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_alle.xls")
 
 igraph::graph.density(ws1)
 
@@ -585,23 +587,23 @@ V(ws2)$color_k[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
-#V(ws2)$name[V(ws2)$type == "workshop"] <- NA # Workshops
 V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 0.5 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
+V(ws2)$vertex.size <- 3 * V(ws2)$degree / max(V(ws2)$degree) + 5
 
 ## Workshops
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
+     edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
 
 ## Workshops: Kategorien
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = "black", 
-     edge.arrow.size = 0,
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
 ## Kombination
@@ -609,17 +611,22 @@ par(mfrow=c(1,2))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.label = V(ws2)$name, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
+     edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = "black", 
-     edge.arrow.size = 0,
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
 # Cover
+V(ws2)$namecover <- V(ws2)$name
+V(ws2)$namecover[V(ws2)$type == "workshop"] <- NA
+V(ws2)$framecolorcover <- NA
+V(ws2)$framecolorcover[V(ws2)$type == "workshop"] <- "black"
 par(mfrow=c(1,1))
-plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
-     vertex.label = NA, vertex.frame.color = "black",
+plot(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_st,
+     vertex.label = V(ws2)$namecover, vertex.label.family = "Calibri",
+     vertex.frame.color = V(ws2)$framecolorcover, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_ws)
 
