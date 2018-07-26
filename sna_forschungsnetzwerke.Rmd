@@ -243,12 +243,18 @@ colSums(Gdata_FN)
 
 # Visualisierung
 
-```{r Betweenness über Degree, eval=FALSE}
-plot(forschungsnetzwerke_sna[c(1:11),8] ~ forschungsnetzwerke_sna[c(1:11),7],
+```{r Betweenness über Degree - NOT WORKING, eval=FALSE}
+y <- forschungsnetzwerke_sna[c(1:11),8]
+x <- forschungsnetzwerke_sna[c(1:11),7]
+plot(y ~ x,
      xlab = "Degree-Zentralität",
      ylab = "Betweenness-Zentralität",
      pch = 4)
-#abline(lm(forschungsnetzwerke_sna[c(1:11),8] ~ forschungsnetzwerke_sna[c(1:11),7]), col = "green")
+#abline(lm(y ~ x), col = "green")
+
+fit <- lm(y~log(x))
+summary(fit)
+curve(predict(fit,data.frame(x),type="resp"), add=TRUE, col= "green")
 ```
 
 ```{r circlize, eval=FALSE}

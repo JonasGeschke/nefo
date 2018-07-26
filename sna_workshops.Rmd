@@ -480,7 +480,7 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "nefobiodiv")
+Gdata <- subset_workshops(Gdata_WS, subset = "2018")
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -537,7 +537,7 @@ workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows
 workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_biodiv.xls") ### EDIT
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_2018.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
@@ -550,25 +550,42 @@ igraph::graph.density(ws1)
 #betw_values_WS_ipbesforen <- sort(betw_values_WS_ipbesforen, decreasing = T)
 #xlsx::write.xlsx(betw_values_WS_ipbesforen, file = "Workshops_ipbesforen_betweenness.xls")
 
+length(which(V(ws2)$kategorie == "Wissenschaft"))
+length(which(V(ws2)$kategorie == "Behoerde"))
+length(which(V(ws2)$kategorie == "Wirtschaft"))
+length(which(V(ws2)$kategorie == "Verbaende"))
+length(which(V(ws2)$kategorie == "Medien"))
+length(which(V(ws2)$kategorie == "keine Angabe"))
+
 detach("package:igraph", unload=TRUE)
 ```
 
 
 # Visualisierung
 
-```{r Betweenness über Degree, eval=FALSE}
-plot(workshops_sna$betweenness1 ~ workshops_sna$degree1,
+```{r Betweenness über Degree - NOT WORKING, eval=FALSE}
+regr <- data.frame(degree = workshops_sna[-c(1:4),4], betweenness = workshops_sna[-c(1:4),5])
+
+
+fit <- glm(y ~ log(x))
+summary(fit)
+newdata <- data.frame(degree = seq(min(x), max(x), length = length(x)))
+prd <- predict(fit, newdata)
+
+plot(y ~ x,
      xlab = "Degree-Zentralität",
      ylab = "Betweenness-Zentralität",
      pch = 4)
-#abline(lm(workshops_sna$betweenness1 ~ workshops_sna$degree1), col = "green")
+#abline(lm(y ~ x), col = "green")
+lines(prd, newdata$degree, col = "green")
+
 ```
 
 ```{r igraph EDIT, eval=FALSE}
 library(igraph)
 library(RColorBrewer)
 
-# Berechnung einer Farbpalette
+# Berechnung einer Farbpalette ### CHOOSE
 coul7 <- brewer.pal(7, "YlOrBr")
 palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
 palette_ws1[which(palette_ws1 %in% c(1:50))] <- 1
@@ -578,6 +595,17 @@ palette_ws1[palette_ws1 %in% c(201:300)] <- 4
 palette_ws1[palette_ws1 %in% c(301:400)] <- 5
 palette_ws1[palette_ws1 %in% c(401:500)] <- 6
 palette_ws1[palette_ws1 > 500] <- 7
+farben_ws1 <- coul7[palette_ws1]
+
+coul7 <- brewer.pal(7, "YlOrBr")
+palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
+palette_ws1[which(palette_ws1 == 1)] <- 1
+palette_ws1[which(palette_ws1 %in% c(2:10))] <- 2
+palette_ws1[palette_ws1 %in% c(11:20)] <- 3
+palette_ws1[palette_ws1 %in% c(21:30)] <- 4
+palette_ws1[palette_ws1 %in% c(31:40)] <- 5
+palette_ws1[palette_ws1 %in% c(41:50)] <- 6
+palette_ws1[palette_ws1 > 50] <- 7
 farben_ws1 <- coul7[palette_ws1]
 
 # Plotten
@@ -610,11 +638,16 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
+     vertex.label = V(ws2)$names, vertex.label.family = "Calibri",
+     vertex.frame.color = NA, vertex.label.color = "black",
+     edge.arrow.size = 0, edge.color = E(ws2)$color_st,
+     layout = lyout_ws)
 
 ## Workshops: Kategorien
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
-     vertex.label = NA, vertex.frame.color = framecolorcover, 
+     vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
@@ -626,7 +659,7 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
-     vertex.label = NA, vertex.frame.color = framecolorcover, 
+     vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
@@ -637,7 +670,7 @@ V(ws2)$framecolorcover <- NA
 V(ws2)$framecolorcover[V(ws2)$type == "workshop"] <- "black"
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_st,
-     vertex.label = V(ws2)$namecover, vertex.label.family = "Calibri",
+     vertex.label = V(ws2)$partnames, vertex.label.family = "Calibri",
      vertex.frame.color = V(ws2)$framecolorcover, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_ws)
