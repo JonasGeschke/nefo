@@ -244,17 +244,33 @@ colSums(Gdata_FN)
 # Visualisierung
 
 ```{r Betweenness über Degree - NOT WORKING, eval=FALSE}
-y <- forschungsnetzwerke_sna[c(1:11),8]
-x <- forschungsnetzwerke_sna[c(1:11),7]
-plot(y ~ x,
+# Analse der Forschungsnetzwerke
+regr_netzwerke <- data.frame(degree = forschungsnetzwerke_sna[c(1:11),7], betweenness = forschungsnetzwerke_sna[c(1:11),8])
+
+plot(regr_netzwerke$betweenness ~ regr_netzwerke$degree,
      xlab = "Degree-Zentralität",
      ylab = "Betweenness-Zentralität",
      pch = 4)
-#abline(lm(y ~ x), col = "green")
+abline(glm(regr_netzwerke$betweenness ~ regr_netzwerke$degree), col = "blue")
+summary(glm(regr_netzwerke$betweenness ~ regr_netzwerke$degree))
 
-fit <- lm(y~log(x))
-summary(fit)
-curve(predict(fit,data.frame(x),type="resp"), add=TRUE, col= "green")
+shapiro.test(regr_netzwerke$degree) # p>0,05 = normalverteilt # macht das Sinn?
+shapiro.test(regr_netzwerke$betweenness) # nicht normalverteilt => Korrelation nach Spearman
+cor.test(regr_netzwerke$degree,regr_netzwerke$betweenness,method="spearman")
+
+# Analyse der Institutionen
+regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[c(12:nrow(forschungsnetzwerke_sna)),5], betweenness = forschungsnetzwerke_sna[c(12:nrow(forschungsnetzwerke_sna)),6])
+
+plot(regr_institutionen$betweenness ~ regr_institutionen$degree,
+     xlab = "Degree-Zentralität",
+     ylab = "Betweenness-Zentralität",
+     pch = 4)
+abline(glm(regr_institutionen$betweenness ~ regr_institutionen$degree), col = "blue")
+summary(glm(regr_institutionen$betweenness ~ regr_institutionen$degree))
+
+shapiro.test(regr_institutionen$degree) # nicht normalverteilt
+shapiro.test(regr_institutionen$betweenness) # nicht normalverteilt => Korrelation nach Spearman
+cor.test(regr_institutionen$degree,regr_institutionen$betweenness,method="spearman")
 ```
 
 ```{r circlize, eval=FALSE}
