@@ -235,6 +235,7 @@ nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),])
 nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),])
 nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),])
 nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),])
+nrow(Gdata_FN[which(rowSums(Gdata_FN) == 5),])
 nrow(Gdata_FN[which(rowSums(Gdata_FN) > 5),])
 
 colSums(Gdata_FN)
@@ -243,7 +244,24 @@ colSums(Gdata_FN)
 
 # Visualisierung
 
-```{r Betweenness über Degree - NOT WORKING, eval=FALSE}
+```{r Deskriptive Statistik, eval=FALSE}
+library(igraph)
+library(RColorBrewer)
+
+plotN <- data.frame(n = c(nrow(Gdata_FN[which(rowSums(Gdata_FN) == 0),]),
+                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),]),
+                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),]),
+                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),]),
+                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),]),
+                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 5),])))
+pie(plotN$n, col = brewer.pal(6, "YlOrBr"), labels = plotN$n, cex = 0.7)
+legend("right", legend = c("0", "1", "2", "3", "4", "5"), fill = brewer.pal(6, "YlOrBr"), bty = "n", cex = 1)
+
+detach("package:igraph", unload=TRUE)
+detach("package:RColorBrewer", unload=TRUE)
+```
+
+```{r Betweenness über Degree, eval=FALSE}
 # Analse der Forschungsnetzwerke
 regr_netzwerke <- data.frame(degree = forschungsnetzwerke_sna[c(1:11),7], betweenness = forschungsnetzwerke_sna[c(1:11),8])
 
@@ -259,7 +277,7 @@ shapiro.test(regr_netzwerke$betweenness) # nicht normalverteilt => Korrelation n
 cor.test(regr_netzwerke$degree,regr_netzwerke$betweenness,method="spearman")
 
 # Analyse der Institutionen
-regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[c(12:nrow(forschungsnetzwerke_sna)),5], betweenness = forschungsnetzwerke_sna[c(12:nrow(forschungsnetzwerke_sna)),6])
+regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[-c(1:11,5], betweenness = forschungsnetzwerke_sna[-c(1:11),6])
 
 plot(regr_institutionen$betweenness ~ regr_institutionen$degree,
      xlab = "Degree-Zentralität",
