@@ -480,7 +480,7 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "2018")
+Gdata <- subset_workshops(Gdata_WS, subset = "all")
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -537,7 +537,7 @@ workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows
 workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_2018.xls") ### EDIT
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_alle.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
@@ -563,22 +563,110 @@ detach("package:igraph", unload=TRUE)
 
 # Visualisierung
 
-```{r Betweenness über Degree - NOT WORKING, eval=FALSE}
-regr <- data.frame(degree = workshops_sna[-c(1:4),4], betweenness = workshops_sna[-c(1:4),5])
+```{r Anzahl Institutionen pro Kategorie, eval=FALSE}
+library(igraph)
+
+plotK <- data.frame(n = c(length(which(V(ws2)$kategorie == "Wissenschaft")),
+                          length(which(V(ws2)$kategorie == "Behoerde")),
+                          length(which(V(ws2)$kategorie == "Wirtschaft")),
+                          length(which(V(ws2)$kategorie == "Verbaende")),
+                          length(which(V(ws2)$kategorie == "Medien")),
+                          length(which(V(ws2)$kategorie == "keine Angabe"))))
+plot <- barplot(plotK[-6,], col = c(rgb(92,139,255,max=255), 
+                            rgb(219,174,0,max=255), 
+                            rgb(11,33,94,max=255), 
+                            rgb(0,155,68,max=255), 
+                            rgb(180,33,0,max=255)),
+        ylim = c(0,120), yaxt='n',
+        names.arg=c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien"))
+text(x = plot, y = plotK[-6,], label = plotK[-6,], pos = 3, cex = 0.8, col = "black")
+
+detach("package:igraph", unload=TRUE)
+```
+
+```{r zeitlich, eval=FALSE}
+library(xlsx)
+
+zeitlich <- read.xlsx(file = "Ergebnisse/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
+
+# Institutionen pro Kategorie
+plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
+     xlab = "Jahr",
+     ylab = "Anzahl Institutionen",
+     pch = 4,
+     ylim = c(0,55))
+points(zeitlich$Behoerde ~ jitter(zeitlich$Jahr, .1), col = rgb(219,174,0,max=255), pch = 4)
+points(zeitlich$Wirtschaft ~ jitter(zeitlich$Jahr, .1), col = rgb(11,33,94,max=255), pch = 4)
+points(zeitlich$Verbaende ~ jitter(zeitlich$Jahr, .1), col = rgb(0,155,68,max=255), pch = 4)
+points(zeitlich$Medien ~ jitter(zeitlich$Jahr, .1), col = rgb(180,33,0,max=255), pch = 4)
+abline(glm(zeitlich$Wissenschaft ~ zeitlich$Jahr), col = rgb(92,139,255,max=255))
+abline(glm(zeitlich$Behoerde ~ zeitlich$Jahr), col = rgb(219,174,0,max=255))
+abline(glm(zeitlich$Wirtschaft ~ zeitlich$Jahr), col = rgb(11,33,94,max=255))
+abline(glm(zeitlich$Verbaende ~ zeitlich$Jahr), col = rgb(0,155,68,max=255))
+abline(glm(zeitlich$Medien ~ zeitlich$Jahr), col = rgb(180,33,0,max=255))
+abline(glm(zeitlich$Institutionen*.5 ~ zeitlich$Jahr), col = "dark grey", lty = 2)
+legend("topright", legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", 
+                              "GLM der Anzahl Institutionen / 2"), 
+       fill = c(rgb(92,139,255,max=255), rgb(219,174,0,max=255), 
+               rgb(11,33,94,max=255), rgb(0,155,68,max=255), rgb(180,33,0,max=255), "dark grey"),
+       bty = "n", cex = 1)
+
+summary(glm(zeitlich$Wissenschaft ~ zeitlich$Jahr)) # p=0.03
+summary(glm(zeitlich$Behoerde ~ zeitlich$Jahr)) # p=0.7
+summary(glm(zeitlich$Wirtschaft ~ zeitlich$Jahr)) # p=0.1
+summary(glm(zeitlich$Verbaende ~ zeitlich$Jahr)) # p=0.3
+summary(glm(zeitlich$Medien ~ zeitlich$Jahr)) # p=0.3
+summary(glm(zeitlich$Institutionen ~ zeitlich$Jahr)) # p=0.7
+
+# Dichte
+plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "blue",
+     xlab = "Jahr",
+     ylab = "Netzwerk-Dichte",
+     pch = 4)
+abline(glm(zeitlich$Dichte ~ zeitlich$Jahr), col = "blue")
+abline(glm(zeitlich$Institutionen*.01 ~ zeitlich$Jahr), col = "dark grey", lty = 2)
+legend("bottomright", legend = c("Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"), 
+       fill = c("blue", "dark grey"),
+       bty = "n", cex = 1)
+
+summary(glm(zeitlich$Dichte ~ zeitlich$Jahr)) # p=0.2
+
+shapiro.test(zeitlich$Dichte) # p>0.5 = normalverteilt
+shapiro.test(zeitlich$Institutionen) # nicht normalverteilt => Korrelation nach Spearman
+cor.test(zeitlich$Dichte,zeitlich$Institutionen,method="spearman") # p=0.8
+
+detach("package:xlsx", unload=TRUE)
+```
 
 
-fit <- glm(y ~ log(x))
-summary(fit)
-newdata <- data.frame(degree = seq(min(x), max(x), length = length(x)))
-prd <- predict(fit, newdata)
+```{r Betweenness über Degree, eval=FALSE}
+# 1-Mode
+regr1 <- data.frame(degree = workshops_sna[-c(1:37),4], betweenness = workshops_sna[-c(1:37),5])
 
-plot(y ~ x,
+plot(regr1$betweenness ~ regr1$degree,
      xlab = "Degree-Zentralität",
      ylab = "Betweenness-Zentralität",
      pch = 4)
-#abline(lm(y ~ x), col = "green")
-lines(prd, newdata$degree, col = "green")
+abline(glm(regr1$betweenness ~ regr1$degree), col = "blue")
+summary(glm(regr1$betweenness ~ regr1$degree))
 
+shapiro.test(regr1$degree) # nicht normalverteilt
+shapiro.test(regr1$betweenness) # nicht normalverteilt => Korrelation nach Spearman
+cor.test(regr1$degree,regr1$betweenness,method="spearman")
+
+# 2-Mode
+regr2 <- data.frame(degree = workshops_sna[-c(1:37),6], betweenness = workshops_sna[-c(1:37),7])
+
+plot(regr2$betweenness ~ regr2$degree,
+     xlab = "Degree-Zentralität",
+     ylab = "Betweenness-Zentralität",
+     pch = 4)
+abline(glm(regr2$betweenness ~ regr2$degree), col = "blue")
+summary(glm(regr2$betweenness ~ regr2$degree))
+
+shapiro.test(regr2$degree) # nicht normalverteilt
+shapiro.test(regr2$betweenness) # nicht normalverteilt => Korrelation nach Spearman
+cor.test(regr2$degree,regr2$betweenness,method="spearman")
 ```
 
 ```{r igraph EDIT, eval=FALSE}
