@@ -501,7 +501,7 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "all")
+Gdata <- subset_workshops(Gdata_WS, subset = "2010-2018")
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -639,7 +639,7 @@ summary(glm(zeitlich$Verbaende ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Medien ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Institutionen ~ zeitlich$Jahr)) # p=0.7
 
-# Dichte
+# Dichte pro Jahr
 plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "blue",
      xlab = "Jahr",
      ylab = "Netzwerk-Dichte",
@@ -649,12 +649,22 @@ abline(glm(zeitlich$Institutionen*.01 ~ zeitlich$Jahr), col = "dark grey", lty =
 legend("bottomright", legend = c("Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"), 
        fill = c("blue", "dark grey"),
        bty = "n", cex = 1)
-
 summary(glm(zeitlich$Dichte ~ zeitlich$Jahr)) # p=0.2
 
 shapiro.test(zeitlich$Dichte) # p>0.5 = normalverteilt
 shapiro.test(zeitlich$Institutionen) # nicht normalverteilt => Korrelation nach Spearman
 cor.test(zeitlich$Dichte,zeitlich$Institutionen,method="spearman") # p=0.8
+
+# Dichte aufbauend
+plot(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr, col = "blue",
+     xlab = "Jahr",
+     ylab = "Netzwerk-Dichte",
+     pch = 4)
+abline(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr), col = "blue")
+legend("topright", legend = c("Netzwerk-Dichte"), 
+       fill = c("blue"),
+       bty = "n", cex = 1)
+summary(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr)) # p=0.2
 
 detach("package:xlsx", unload=TRUE)
 ```
