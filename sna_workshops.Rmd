@@ -71,8 +71,8 @@ delete.isolates <- function(graph, mode = "all"){
   delete.vertices(graph, isolates)
 }
 
-subset_workshops <- function(Gdata, subset = "all"){
-  if (subset == "all"){
+subset_workshops <- function(Gdata, subset = "2010-2018"){
+  if (subset == "2010-2018"){
     Gdata <- Gdata[,-c(which(names(Gdata) %in% c("WS24", "WS28", "WS31", "WS39")))]
     return(Gdata)}
   else if (subset == "ipbesforen"){
@@ -114,7 +114,28 @@ subset_workshops <- function(Gdata, subset = "all"){
   else if (subset == "2018"){
     Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS37", "WS38", "WS40", "WS41")))]
     return(Gdata)}
-  else {print("Please set subset: ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017 or 2018")}
+  else if (subset == "2010-2011"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10")))]
+    return(Gdata)}
+  else if (subset == "2010-2012"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14")))]
+    return(Gdata)}
+  else if (subset == "2010-2013"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20")))]
+    return(Gdata)}
+  else if (subset == "2010-2014"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25")))]
+    return(Gdata)}
+  else if (subset == "2010-2015"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27")))]
+    return(Gdata)}
+  else if (subset == "2010-2016"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27", "WS29", "WS30")))]
+    return(Gdata)}
+  else if (subset == "2010-2017"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27", "WS29", "WS30", "WS32", "WS33", "WS34", "WS35", "WS36")))]
+    return(Gdata)}
+  else {print("Please set subset: ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018")}
 }
 
 create_nodes_workshops_1mode <- function(Gdata){
