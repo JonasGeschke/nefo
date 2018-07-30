@@ -640,14 +640,16 @@ summary(glm(zeitlich$Medien ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Institutionen ~ zeitlich$Jahr)) # p=0.7
 
 # Dichte pro Jahr
-plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "blue",
+plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "black",
      xlab = "Jahr",
      ylab = "Netzwerk-Dichte",
      pch = 4)
 abline(glm(zeitlich$Dichte ~ zeitlich$Jahr), col = "blue")
 abline(glm(zeitlich$Institutionen*.01 ~ zeitlich$Jahr), col = "dark grey", lty = 2)
-legend("bottomright", legend = c("Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"), 
-       fill = c("blue", "dark grey"),
+legend("bottomright", legend = c("Netzwerk-Dichte pro Jahr", "GLM der Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"), 
+       col = c("black", "blue", "dark grey"),
+       pch = c(4, NA, NA),
+       lty = c(NA, 1, 2),
        bty = "n", cex = 1)
 summary(glm(zeitlich$Dichte ~ zeitlich$Jahr)) # p=0.2
 
@@ -655,11 +657,10 @@ shapiro.test(zeitlich$Dichte) # p>0.5 = normalverteilt
 shapiro.test(zeitlich$Institutionen) # nicht normalverteilt => Korrelation nach Spearman
 cor.test(zeitlich$Dichte,zeitlich$Institutionen,method="spearman") # p=0.8
 
-<<<<<<< HEAD
 mean(zeitlich$Dichte)
 boxplot(zeitlich$Dichte)
 points(x = 1,y = median(zeitlich$Dichte), col = "blue", pch = 3)
-=======
+
 # Dichte aufbauend
 plot(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr, col = "blue",
      xlab = "Jahr",
@@ -670,7 +671,6 @@ legend("topright", legend = c("Netzwerk-Dichte"),
        fill = c("blue"),
        bty = "n", cex = 1)
 summary(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr)) # p=0.2
->>>>>>> 6ea14dcc85aefd8daf33fb99a922baf86f697aeb
 
 detach("package:xlsx", unload=TRUE)
 ```
