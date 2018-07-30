@@ -71,8 +71,8 @@ delete.isolates <- function(graph, mode = "all"){
   delete.vertices(graph, isolates)
 }
 
-subset_workshops <- function(Gdata, subset = "all"){
-  if (subset == "all"){
+subset_workshops <- function(Gdata, subset = "2010-2018"){
+  if (subset == "2010-2018"){
     Gdata <- Gdata[,-c(which(names(Gdata) %in% c("WS24", "WS28", "WS31", "WS39")))]
     return(Gdata)}
   else if (subset == "ipbesforen"){
@@ -114,7 +114,28 @@ subset_workshops <- function(Gdata, subset = "all"){
   else if (subset == "2018"){
     Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS37", "WS38", "WS40", "WS41")))]
     return(Gdata)}
-  else {print("Please set subset: ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017 or 2018")}
+  else if (subset == "2010-2011"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10")))]
+    return(Gdata)}
+  else if (subset == "2010-2012"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14")))]
+    return(Gdata)}
+  else if (subset == "2010-2013"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20")))]
+    return(Gdata)}
+  else if (subset == "2010-2014"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25")))]
+    return(Gdata)}
+  else if (subset == "2010-2015"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27")))]
+    return(Gdata)}
+  else if (subset == "2010-2016"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27", "WS29", "WS30")))]
+    return(Gdata)}
+  else if (subset == "2010-2017"){
+    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27", "WS29", "WS30", "WS32", "WS33", "WS34", "WS35", "WS36")))]
+    return(Gdata)}
+  else {print("Please set subset: ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018")}
 }
 
 create_nodes_workshops_1mode <- function(Gdata){
@@ -618,7 +639,7 @@ summary(glm(zeitlich$Verbaende ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Medien ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Institutionen ~ zeitlich$Jahr)) # p=0.7
 
-# Dichte
+# Dichte pro Jahr
 plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "blue",
      xlab = "Jahr",
      ylab = "Netzwerk-Dichte",
@@ -628,16 +649,28 @@ abline(glm(zeitlich$Institutionen*.01 ~ zeitlich$Jahr), col = "dark grey", lty =
 legend("bottomright", legend = c("Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"), 
        fill = c("blue", "dark grey"),
        bty = "n", cex = 1)
-
 summary(glm(zeitlich$Dichte ~ zeitlich$Jahr)) # p=0.2
 
 shapiro.test(zeitlich$Dichte) # p>0.5 = normalverteilt
 shapiro.test(zeitlich$Institutionen) # nicht normalverteilt => Korrelation nach Spearman
 cor.test(zeitlich$Dichte,zeitlich$Institutionen,method="spearman") # p=0.8
 
+<<<<<<< HEAD
 mean(zeitlich$Dichte)
 boxplot(zeitlich$Dichte)
 points(x = 1,y = median(zeitlich$Dichte), col = "blue", pch = 3)
+=======
+# Dichte aufbauend
+plot(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr, col = "blue",
+     xlab = "Jahr",
+     ylab = "Netzwerk-Dichte",
+     pch = 4)
+abline(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr), col = "blue")
+legend("topright", legend = c("Netzwerk-Dichte"), 
+       fill = c("blue"),
+       bty = "n", cex = 1)
+summary(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr)) # p=0.2
+>>>>>>> 6ea14dcc85aefd8daf33fb99a922baf86f697aeb
 
 detach("package:xlsx", unload=TRUE)
 ```
