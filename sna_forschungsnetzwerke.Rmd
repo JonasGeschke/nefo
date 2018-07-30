@@ -277,7 +277,7 @@ shapiro.test(regr_netzwerke$betweenness) # nicht normalverteilt => Korrelation n
 cor.test(regr_netzwerke$degree,regr_netzwerke$betweenness,method="spearman")
 
 # Analyse der Institutionen
-regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[-c(1:11,5], betweenness = forschungsnetzwerke_sna[-c(1:11),6])
+regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[-c(1:11),5], betweenness = forschungsnetzwerke_sna[-c(1:11),6])
 
 plot(regr_institutionen$betweenness ~ regr_institutionen$degree,
      xlab = "Degree-Zentralität",
