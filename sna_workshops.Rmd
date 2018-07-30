@@ -608,7 +608,7 @@ detach("package:igraph", unload=TRUE)
 ```{r zeitlich, eval=FALSE}
 library(xlsx)
 
-zeitlich <- read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
+zeitlich <- read.xlsx(file = "Ergebnisse/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
 
 # Institutionen pro Kategorie
 plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
@@ -646,7 +646,7 @@ plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "black",
      pch = 4)
 abline(glm(zeitlich$Dichte ~ zeitlich$Jahr), col = "blue")
 abline(glm(zeitlich$Institutionen*.01 ~ zeitlich$Jahr), col = "dark grey", lty = 2)
-legend("bottomright", legend = c("Netzwerk-Dichte pro Jahr", "GLM der Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"), 
+legend("bottomright", legend = c("Netzwerk-Dichte pro Jahr", "GLM der Netzwerk-Dichte", "GLM der Anzahl Institutionen / 100"),
        col = c("black", "blue", "dark grey"),
        pch = c(4, NA, NA),
        lty = c(NA, 1, 2),
