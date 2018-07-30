@@ -608,7 +608,7 @@ detach("package:igraph", unload=TRUE)
 ```{r zeitlich, eval=FALSE}
 library(xlsx)
 
-zeitlich <- read.xlsx(file = "Ergebnisse/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
+zeitlich <- read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
 
 # Institutionen pro Kategorie
 plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
