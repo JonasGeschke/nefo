@@ -593,14 +593,16 @@ plotK <- data.frame(n = c(length(which(V(ws2)$kategorie == "Wissenschaft")),
                           length(which(V(ws2)$kategorie == "Verbaende")),
                           length(which(V(ws2)$kategorie == "Medien")),
                           length(which(V(ws2)$kategorie == "keine Angabe"))))
-plot <- barplot(plotK[-6,], col = c(rgb(92,139,255,max=255), 
+plot <- barplot(plotK$n, col = c(rgb(92,139,255,max=255), #[-6,]
                             rgb(219,174,0,max=255), 
                             rgb(11,33,94,max=255), 
                             rgb(0,155,68,max=255), 
-                            rgb(180,33,0,max=255)),
+                            rgb(180,33,0,max=255),
+                            rgb(255,161,213,max=255)),
         ylim = c(0,120), yaxt='n',
-        names.arg=c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien"))
-text(x = plot, y = plotK[-6,], label = plotK[-6,], pos = 3, cex = 0.8, col = "black")
+        names.arg=c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", "keine Angabe"),
+        cex.names = 1.5)
+text(x = plot, y = plotK$n, label = plotK$n, pos = 3, cex = 1.5, col = "black") #0.8
 
 detach("package:igraph", unload=TRUE)
 ```
@@ -639,6 +641,37 @@ summary(glm(zeitlich$Verbaende ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Medien ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Institutionen ~ zeitlich$Jahr)) # p=0.7
 
+
+# Institutionen pro Kategorie relativ zur Anzahl Workshops
+plot((zeitlich$Wissenschaft/zeitlich$Workshops) ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
+     xlab = "Jahr",
+     ylab = "Anzahl Institutionen",
+     pch = 4,
+     ylim = c(0,20))
+points((zeitlich$Behoerde/zeitlich$Workshops) ~ jitter(zeitlich$Jahr, .1), col = rgb(219,174,0,max=255), pch = 4)
+points((zeitlich$Wirtschaft/zeitlich$Workshops) ~ jitter(zeitlich$Jahr, .1), col = rgb(11,33,94,max=255), pch = 4)
+points((zeitlich$Verbaende/zeitlich$Workshops) ~ jitter(zeitlich$Jahr, .1), col = rgb(0,155,68,max=255), pch = 4)
+points((zeitlich$Medien/zeitlich$Workshops) ~ jitter(zeitlich$Jahr, .1), col = rgb(180,33,0,max=255), pch = 4)
+abline(glm((zeitlich$Wissenschaft/zeitlich$Workshops) ~ zeitlich$Jahr), col = rgb(92,139,255,max=255))
+abline(glm((zeitlich$Behoerde/zeitlich$Workshops) ~ zeitlich$Jahr), col = rgb(219,174,0,max=255))
+abline(glm((zeitlich$Wirtschaft/zeitlich$Workshops) ~ zeitlich$Jahr), col = rgb(11,33,94,max=255))
+abline(glm((zeitlich$Verbaende/zeitlich$Workshops) ~ zeitlich$Jahr), col = rgb(0,155,68,max=255))
+abline(glm((zeitlich$Medie/zeitlich$Workshops)n ~ zeitlich$Jahr), col = rgb(180,33,0,max=255))
+abline(glm((zeitlich$Institutionen*.5/zeitlich$Workshops) ~ zeitlich$Jahr), col = "dark grey", lty = 2)
+legend("topright", legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", 
+                              "GLM der Anzahl Institutionen / 2"), 
+       fill = c(rgb(92,139,255,max=255), rgb(219,174,0,max=255), 
+               rgb(11,33,94,max=255), rgb(0,155,68,max=255), rgb(180,33,0,max=255), "dark grey"),
+       bty = "n", cex = 1)
+
+summary(glm((zeitlich$Wissenschaft/zeitlich$Workshops) ~ zeitlich$Jahr)) # p=0.2
+summary(glm((zeitlich$Behoerde/zeitlich$Workshops) ~ zeitlich$Jahr)) # p=0.7
+summary(glm((zeitlich$Wirtschaft/zeitlich$Workshops) ~ zeitlich$Jahr)) # p=0.1
+summary(glm((zeitlich$Verbaende/zeitlich$Workshops) ~ zeitlich$Jahr)) # p=0.1
+summary(glm((zeitlich$Medien/zeitlich$Workshops) ~ zeitlich$Jahr)) # p=0.5
+summary(glm((zeitlich$Institutionen/zeitlich$Workshops) ~ zeitlich$Jahr)) # p=0.5
+
+
 # Institutionen pro Kategorie: Wissenschaft vs. Wirtschaft/Verbände
 plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
      xlab = "Jahr",
@@ -656,8 +689,6 @@ legend("topright", legend = c("Wissenschaft", "Wirtschaft + Verbände"),
 summary(glm(zeitlich$Wissenschaft ~ zeitlich$Jahr)) # p=0.03
 summary(glm((zeitlich$Wirtschaft + zeitlich$Verbaende) ~ zeitlich$Jahr)) # p=0.1
 cor.test(zeitlich$Wissenschaft,(zeitlich$Wirtschaft + zeitlich$Verbaende),method="spearman") # p=0.4
-
-
 
 
 # Dichte pro Jahr
@@ -695,7 +726,6 @@ summary(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr)) # p=0.2
 
 detach("package:xlsx", unload=TRUE)
 ```
-
 
 ```{r Betweenness über Degree, eval=FALSE}
 # 1-Mode
