@@ -608,7 +608,7 @@ detach("package:igraph", unload=TRUE)
 ```{r zeitlich, eval=FALSE}
 library(xlsx)
 
-zeitlich <- read.xlsx(file = "Ergebnisse/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
+zeitlich <- read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
 
 # Institutionen pro Kategorie
 plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
@@ -638,6 +638,27 @@ summary(glm(zeitlich$Wirtschaft ~ zeitlich$Jahr)) # p=0.1
 summary(glm(zeitlich$Verbaende ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Medien ~ zeitlich$Jahr)) # p=0.3
 summary(glm(zeitlich$Institutionen ~ zeitlich$Jahr)) # p=0.7
+
+# Institutionen pro Kategorie: Wissenschaft vs. Wirtschaft/Verbände
+plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
+     xlab = "Jahr",
+     ylab = "Anzahl Institutionen",
+     pch = 4,
+     ylim = c(0,55))
+points((zeitlich$Wirtschaft + zeitlich$Verbaende) ~ jitter(zeitlich$Jahr, .1), col = "black", pch = 4)
+abline(glm(zeitlich$Wissenschaft ~ zeitlich$Jahr), col = rgb(92,139,255,max=255))
+abline(glm((zeitlich$Wirtschaft + zeitlich$Verbaende) ~ zeitlich$Jahr), col = "black")
+#abline(glm(zeitlich$Institutionen*.5 ~ zeitlich$Jahr), col = "dark grey", lty = 2)
+legend("topright", legend = c("Wissenschaft", "Wirtschaft + Verbände"), 
+       fill = c(rgb(92,139,255,max=255), "black"),
+       bty = "n", cex = 1)
+
+summary(glm(zeitlich$Wissenschaft ~ zeitlich$Jahr)) # p=0.03
+summary(glm((zeitlich$Wirtschaft + zeitlich$Verbaende) ~ zeitlich$Jahr)) # p=0.1
+cor.test(zeitlich$Wissenschaft,(zeitlich$Wirtschaft + zeitlich$Verbaende),method="spearman") # p=0.4
+
+
+
 
 # Dichte pro Jahr
 plot(zeitlich$Dichte ~ zeitlich$Jahr, col = "black",
