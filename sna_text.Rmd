@@ -43,17 +43,19 @@ if("textreadr" %in% rownames(installed.packages())   == FALSE){
 #  install.packages("koRpus")}
 if("wordcloud" %in% rownames(installed.packages())   == FALSE){
   install.packages("wordcloud")}
-#if("tm" %in% rownames(installed.packages())   == FALSE){
-#  install.packages("tm")}
+if("tm" %in% rownames(installed.packages())   == FALSE){
+  install.packages("tm")}
 if("dplyr" %in% rownames(installed.packages())   == FALSE){
   install.packages("dplyr")}
 if("xlsx" %in% rownames(installed.packages())   == FALSE){
   install.packages("xlsx")}
 if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
+if("Matrix" %in% rownames(installed.packages())   == FALSE){
+  install.packages("Matrix")}
 ```
 
-```{r Vorbereitung der Daten, eval=FALSE}
+```{r Laden der Rohdaten, eval=FALSE}
 library(tidytext)
 library(textreadr)
 library(dplyr)
@@ -84,11 +86,11 @@ tidy_NSO <- NSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(ge
 #tidy_PRNSO <- PRNSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 ```
 
-
-# Text mining
-```{r Analyse, eval=FALSE}
+```{r Vorbereitung der Daten, eval=FALSE}
 library(tidytext)
 library(dplyr)
+library(tm)
+library(Matrix)
 
 SDGs <- as.vector(tidy_SDGs$word)
 NBS <- as.vector(tidy_NBS$word)
@@ -127,29 +129,70 @@ Gdata_unique <- Gdata[,-1]
 Gdata_unique <- unique(Gdata_unique)
 Gdata_unique <- Gdata_unique[order(Gdata_unique$freq, decreasing = T),]
 
-document <- data.frame(matrix(0, ncol = (length(unique(tidy_SDGs$word))+1), nrow = 3))
-document[1,1] <- "NBS"
-document[2,1] <- "NSO"
-document[3,1] <- "DNS"
-names(document) <- c(NA, unique(tidy_SDGs$word))
-col <- c(2:ncol(document))
+unique_SDGs <- as.vector(unique(tidy_SDGs$word))
+documents_df <- data.frame(matrix(0, ncol = length(unique_SDGs), nrow = 3))
+names(documents_df) <- c(unique_SDGs)
+row.names(documents_df) <- c("NBS", "NSO", "DNS")
+col <- c(1:ncol(documents_df))
 for (c in col){
-  if (as.character(names(document[c])) %in% tidy_NBS$word){
-    document[1,c] <- length(which(SDGs[c-1] == NBS))}
-  if (as.character(names(document[c])) %in% tidy_NSO$word){
-    document[2,c] <- length(which(SDGs[c-1] == NSO))}
-  if (as.character(names(document[c])) %in% tidy_DNS$word){
-    document[3,c] <- length(which(SDGs[c-1] == DNS))}
+  if (as.character(names(documents_df[c])) %in% tidy_NBS$word){
+    documents_df[1,c] <- length(which(unique_SDGs[c] == NBS))}
+  if (as.character(names(documents_df[c])) %in% tidy_NSO$word){
+    documents_df[2,c] <- length(which(unique_SDGs[c] == NSO))}
+  if (as.character(names(documents_df[c])) %in% tidy_DNS$word){
+    documents_df[3,c] <- length(which(unique_SDGs[c] == DNS))}
 }
 
 
-test <- tidy(document)
+documents_dtm <- as.DocumentTermMatrix(documents_df, weighting = weightTf(documents_df))
+documents_dtm
+tidy_documents <- tidy(documents_dtm)
+tidy_documents
 
-book_words <- list(tidy_NBS, tidy_NSO, tidy_DNS) %>%
-        unnest_tokens(word, text) %>%
-        count(book, word, sort = TRUE) %>%
-        ungroup()
 ```
+
+
+# Text mining
+```{r Analyse, eval=FALSE}
+library(tidytext)
+library(dplyr)
+library(ggplot2)
+
+total_words <- tidy_documents %>% 
+  group_by(document) %>% 
+  summarize(total = sum(count))
+tidy_documents <- left_join(tidy_documents, total_words)
+
+ggplot(tidy_documents, aes(count/total, fill = document)) +
+  geom_histogram(show.legend = FALSE, bins = 100) +
+  xlim(NA, 0.15) +
+  facet_wrap(~document, ncol = 2, scales = "free_y")
+
+documents_tfidf <- tidy_documents %>%
+  bind_tf_idf(term, document, count) %>%
+  arrange(desc(tf_idf))
+
+documents_tfidf
+xlsx::write.xlsx(documents_tfidf, file = "SDGs_term-frequency-stats.xls")
+
+unique_documents_tfidf <- documents_tfidf[which(documents_tfidf$tf_idf != 0),]
+unique_documents_tfidf <- as.vector(unique(unique_documents_tfidf$term))
+xlsx::write.xlsx(unique_documents_tfidf, file = "SDGs_Stichworte_tfidf.xls")
+
+documents_tfidf %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(term = factor(term, levels = rev(unique(term)))) %>% 
+  group_by(document) %>% 
+  top_n(15) %>% 
+  ungroup() %>%
+  ggplot(aes(term, tf_idf, fill = term)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~document, ncol = 2, scales = "free") +
+  coord_flip()
+
+```
+
 
 ```{r Plots, eval=FALSE}
 library(wordcloud)
