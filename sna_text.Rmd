@@ -1,0 +1,416 @@
+---
+title: "Analyse der SDGs in Bezug zur NBS/DNS/NSO"
+author: "Jonas Geschke"
+date: "2018"
+header-includes:
+   - \usepackage{longtable}
+output:
+  pdf_document:
+    toc: yes
+  documentclass: article
+  html_document:
+    toc: yes
+  classoption: a4paper
+  graphics: yes
+---
+
+# Einleitung
+XXX
+
+
+# Einstellungen
+```{r set wd, eval=FALSE}
+# If your working directory is not already specified because you are running this
+# script within a project, you will need to use the setwd() function below to set
+# the path of your working directory. In order to do this just copy the path
+# between the quote signs.
+# Please note: The different levels of the path need to be separated by slashes
+# ("/"), not by backslashes ("\") which are the windows default.
+# 
+# setwd("")
+
+#setwd("/Volumes/NO NAME/MfN/Textanalyse_NBS-DNS-SDGs/R") # Stick
+setwd("Z:/Benutzer/Jonas.Geschke/Textanalyse_NBS-DNS-SDGs/R") # Büro
+```
+
+```{r install packages - RUN, eval=FALSE}
+# Installing required packages if not installed yet
+if("tidytext" %in% rownames(installed.packages())   == FALSE){
+  install.packages("tidytext")}
+if("textreadr" %in% rownames(installed.packages())   == FALSE){
+  install.packages("textreadr")}
+#if("koRpus" %in% rownames(installed.packages())   == FALSE){
+#  install.packages("koRpus")}
+if("wordcloud" %in% rownames(installed.packages())   == FALSE){
+  install.packages("wordcloud")}
+#if("tm" %in% rownames(installed.packages())   == FALSE){
+#  install.packages("tm")}
+if("dplyr" %in% rownames(installed.packages())   == FALSE){
+  install.packages("dplyr")}
+if("xlsx" %in% rownames(installed.packages())   == FALSE){
+  install.packages("xlsx")}
+if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
+  install.packages("RColorBrewer")}
+```
+
+```{r Vorbereitung der Daten, eval=FALSE}
+library(tidytext)
+library(textreadr)
+library(dplyr)
+
+## Load SDGs
+SDGs_raw <- read_docx("Daten/SDGs_deutsch.docx")
+SDGs_df <- data_frame(line = 1:17, text = SDGs_raw)
+
+tidy_SDGs <- SDGs_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_SDGs <- tidy_SDGs[-which(duplicated(tidy_SDGs)),]
+xlsx::write.xlsx(tidy_SDGs, file = "SDGs_Stichworte.xls")
+tidy_SDGs %>% count(word, sort = TRUE)
+
+## Load NBS
+NBS_raw <- read_pdf("Daten/broschuere_biolog_vielfalt_strategie_bf.pdf")
+tidy_NBS <- NBS_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+
+## Load DNS
+DNS_raw <- textreadr::read_pdf("Daten/2017-01-11-nachhaltigkeitsstrategie.pdf")
+tidy_DNS <- DNS_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+
+## Load NSO
+NSO_raw <- read_pdf("Daten/naturschutz-offensive_2020_broschuere_bf.pdf")
+tidy_NSO <- NSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+
+## Load Peer Review der DNS
+#PRNSO_raw <- read_pdf("Daten/2018_Peer_Review_of_German_Sustainability_Strategy_BITV_Deutscher-Teil.pdf")
+#tidy_PRNSO <- PRNSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+```
+
+
+# Text mining
+```{r Analyse, eval=FALSE}
+library(tidytext)
+library(dplyr)
+
+SDGs <- as.vector(tidy_SDGs$word)
+NBS <- as.vector(tidy_NBS$word)
+DNS <- as.vector(tidy_DNS$word)
+NSO <- as.vector(tidy_NSO$word)
+#PRDNS <- as.vector(tidy_PRNSO$word)
+
+Gdata <- tidy_SDGs
+names(Gdata) <- c("SDG", "stichwort")
+Gdata$freq <- NA
+Gdata$freq_rel <- NA
+Gdata$NBS <- NA
+Gdata$NBS_rel <- NA
+Gdata$DNS <- NA
+Gdata$DNS_rel <- NA
+Gdata$NSO <- NA
+Gdata$NSO_rel <- NA
+#Gdata$PRDNS <- NA
+#Gdata$PRDNS_rel <- NA
+
+anzahlSDGs <- c(1:length(SDGs))
+for (n in anzahlSDGs){
+  Gdata[n,3] <- length(which(SDGs[n] == SDGs))
+  Gdata[n,5] <- length(which(SDGs[n] == NBS))
+  Gdata[n,6] <- round(length(which(SDGs[n] == NBS))/length(NBS)*1000, digits = 2)
+  Gdata[n,7] <- length(which(SDGs[n] == DNS))
+  Gdata[n,8] <- round(length(which(SDGs[n] == DNS))/length(DNS)*1000, digits = 2)
+  Gdata[n,9] <- length(which(SDGs[n] == NSO))
+  Gdata[n,10] <- round(length(which(SDGs[n] == NSO))/length(NSO)*1000, digits = 2)
+#  Gdata[n,11] <- length(which(SDGs[n] == PRDNS))
+#  Gdata[n,12] <- round(length(which(SDGs[n] == PRDNS))/length(PRDNS)*1000, digits = 2)
+}
+rm(anzahlSDGs, n)
+
+Gdata_unique <- Gdata[,-1]
+Gdata_unique <- unique(Gdata_unique)
+Gdata_unique <- Gdata_unique[order(Gdata_unique$freq, decreasing = T),]
+
+document <- data.frame(matrix(0, ncol = (length(unique(tidy_SDGs$word))+1), nrow = 3))
+document[1,1] <- "NBS"
+document[2,1] <- "NSO"
+document[3,1] <- "DNS"
+names(document) <- c(NA, unique(tidy_SDGs$word))
+col <- c(2:ncol(document))
+for (c in col){
+  if (as.character(names(document[c])) %in% tidy_NBS$word){
+    document[1,c] <- length(which(SDGs[c-1] == NBS))}
+  if (as.character(names(document[c])) %in% tidy_NSO$word){
+    document[2,c] <- length(which(SDGs[c-1] == NSO))}
+  if (as.character(names(document[c])) %in% tidy_DNS$word){
+    document[3,c] <- length(which(SDGs[c-1] == DNS))}
+}
+
+
+test <- tidy(document)
+
+book_words <- list(tidy_NBS, tidy_NSO, tidy_DNS) %>%
+        unnest_tokens(word, text) %>%
+        count(book, word, sort = TRUE) %>%
+        ungroup()
+```
+
+```{r Plots, eval=FALSE}
+library(wordcloud)
+library(RColorBrewer)
+
+#layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
+wordcloud(words = Gdata_unique$stichwort, freq = Gdata_unique$freq, min.freq = 1,
+          max.words=nrow(Gdata_unique), random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Set2"), main = "Häufigkeit von Begriffen in den SDGs")
+wordcloud(words = Gdata_unique$stichwort, freq = (Gdata_unique$NBS_rel)+1, min.freq = 1,
+          max.words=nrow(Gdata_unique), random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Set2"))
+wordcloud(words = Gdata_unique$stichwort, freq = (Gdata_unique$DNS_rel)+1, min.freq = 1,
+          max.words=nrow(Gdata_unique), random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Set2"))
+wordcloud(words = Gdata_unique$stichwort, freq = (Gdata_unique$NSO_rel+1), min.freq = 1,
+          max.words=nrow(Gdata_unique), random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Set2"))
+
+plot(NBS ~ DNS,
+     xlim = c(0, 700), ylim = c(0, 150),
+     xlab = 'Deutsche Nachhaltigkeitsstrategie', 
+     ylab = 'Nationale Strategie zur Biologischen Vielfalt', 
+     main = 'Stichworte der SDGs in deutschen Strategien (absolute Anzahl)',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(NBS ~ DNS, 
+                        labels = ifelse(((NBS>50) | (DNS>120)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+
+plot(NBS_rel ~ DNS_rel,
+     xlim = c(0, 8), ylim = c(0, 5),
+     xlab = 'Deutsche Nachhaltigkeitsstrategie', 
+     ylab = 'Nationale Strategie zur Biologischen Vielfalt', 
+     main = 'Stichworte der SDGs in deutschen Strategien (Anzahl pro 1000 Worte)',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(NBS_rel ~ DNS_rel, 
+                        labels = ifelse(((NBS_rel>1.5) | (DNS_rel>1.5)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+#grid()
+
+plot(NBS ~ DNS,
+     xlim = c(0, 135), ylim = c(0, 32),
+     xlab = 'Deutsche Nachhaltigkeitsstrategie', 
+     ylab = 'Nationale Strategie zur Biologischen Vielfalt', 
+     main = 'Stichworte der SDGs in deutschen Strategien',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(NBS ~ DNS, 
+                        labels = ifelse(((NBS>9) | (DNS>45)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+
+
+plot(NBS ~ NSO,
+     xlim = c(0, 30), ylim = c(0, 150),
+     xlab = 'Naturschutz-Offensivce 2020', 
+     ylab = 'Nationale Strategie zur Biologischen Vielfalt', 
+     main = 'Stichworte der SDGs in deutschen Strategien',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(NBS ~ NSO, 
+                        labels = ifelse(((NBS>50) | (NSO>10)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+
+plot(NBS ~ NSO,
+     xlim = c(0, 10), ylim = c(0, 32),
+     xlab = 'Naturschutz-Offensive 2020', 
+     ylab = 'Nationale Strategie zur Biologischen Vielfalt', 
+     main = 'Stichworte der SDGs in deutschen Strategien',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(NBS ~ NSO, 
+                        labels = ifelse(((NBS>15) | (NSO>4)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+
+plot(PRDNS ~ DNS,
+     xlim = c(0, 650), ylim = c(0, 80),
+     xlab = 'Deutsche Nachhaltigkeitsstrategie', 
+     ylab = '2018 Peer Review of the German Sustainability Strategy', 
+     main = 'Stichworte der SDGs in deutschen Strategien',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(PRDNS ~ DNS, 
+                        labels = ifelse(((PRDNS>50) | (DNS>100)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+
+plot(PRDNS ~ DNS,
+     xlim = c(0, 100), ylim = c(0, 15),
+     xlab = 'Deutsche Nachhaltigkeitsstrategie', 
+     ylab = '2018 Peer Review of the German Sustainability Strategy', 
+     main = 'Stichworte der SDGs in deutschen Strategien',
+     pch = 20,
+     data = Gdata_unique)
+with(Gdata_unique, text(PRDNS ~ DNS, 
+                        labels = ifelse(((PRDNS>7) | (DNS>79)),stichwort,NA), 
+                        pos = 4))
+abline(0,1, col="green")
+```
+
+
+# Netzwerkanalyse
+```{r nodes und links, eval=FALSE}
+# nodes
+nodes <- data.frame(id=character(), name=character(), print=character(), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("nbs", "NBS", "Nationale Strategie zur biologischen Vielfalt"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("nso", "NSO", "Naturschutz-Offensive 2020"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("dns", "DNS", "Deutsche Nachhaltigkeitsstrategie"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg1", "SDG 1", "1"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg2", "SDG 2", "2"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg3", "SDG 3", "3"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg4", "SDG 4", "4"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg5", "SDG 5", "5"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg6", "SDG 6", "6"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg7", "SDG 7", "7"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg8", "SDG 8", "8"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg9", "SDG 9", "9"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg10", "SDG 10", "10"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg11", "SDG 11", "11"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg12", "SDG 12", "12"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg13", "SDG 13", "13"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg14", "SDG 14", "14"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg15", "SDG 15", "15"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg16", "SDG 16", "16"), stringsAsFactors = FALSE)
+nodes <- rbind(nodes, c("sdg17", "SDG 17", "17"), stringsAsFactors = FALSE)
+colnames(nodes) <- c("id", "name", "print")
+
+# links
+links <- data.frame(from=character(), to=character(), 
+                    value=numeric(), keyword=character(), weight=numeric(), sdg=numeric(), stringsAsFactors = FALSE)
+columnno <- c(6,8,10)
+rowno <- c(1:nrow(Gdata))
+for (c in columnno){
+  for (r in rowno){
+    if (Gdata[r,c]!=0){
+      links <- rbind(links,
+                     c(if (as.character(names(Gdata[(c-1)])) == "NBS"){
+                       "nbs"}
+                       else {
+                         if (as.character(names(Gdata[(c-1)])) == "DNS"){
+                           "dns"}
+                         else {"nso"}},
+                       paste("sdg", Gdata[r,1], sep = ""),
+                       1,
+                       as.character(Gdata[r,2]),
+                       as.character(Gdata[r,c]),
+                       as.numeric(Gdata[r,1])),
+                     stringsAsFactors = FALSE)
+  }
+  }
+}
+names(links) <- c("from", "to", "width", "keyword", "value", "sdg")
+```
+
+```{r igraph, eval=FALSE}
+library(igraph)
+
+SDG_ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
+V(SDG_ntw)$degree <- degree(SDG_ntw)
+V(SDG_ntw)$betweenness <- betweenness(SDG_ntw, directed = F)
+V(SDG_ntw)$vertex.size <- 50 * V(SDG_ntw)$degree / max(V(SDG_ntw)$degree) + 1
+V(SDG_ntw)$label.cex <- V(SDG_ntw)$betweenness / max(V(SDG_ntw)$betweenness)# 1.5 * V(SDG_ntw)$betweenness / max(V(SDG_ntw)$betweenness)+ 0.5
+lyout_SDG_ntw <- layout.fruchterman.reingold(SDG_ntw)
+plot(SDG_ntw, vertex.size = 3, #V(SDG_ntw)$vertex.size,
+     vertex.label = V(SDG_ntw)$name, vertex.label.family = "Calibri",
+     vertex.frame.color = NA, vertex.label.color = "black",
+     edge.arrow.size = 0,
+     layout = lyout_SDG_ntw)
+```
+
+```{r circlize, eval=FALSE}
+library(circlize)
+library(statnet)
+library(igraph)
+library(RColorBrewer)
+
+SDG_ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
+
+# Berechnung einer Farbpalette
+coul <- brewer.pal(5, "YlOrBr")
+palette_ntw <- as.numeric(igraph::degree(SDG_ntw))
+palette_ntw[which(palette_ntw %in% c(0:10))] <- 1
+palette_ntw[which(palette_ntw %in% c(11:20))] <- 2
+palette_ntw[which(palette_ntw %in% c(21:30))] <- 3
+palette_ntw[which(palette_ntw %in% c(31:40))] <- 4
+palette_ntw[which(palette_ntw %in% c(41:50))] <- 5
+farben_ntw <- coul[palette_ntw]
+farben_ntw[1:3] <- "dark grey"
+
+# Preparation von Zirkel-Links
+links_chord <- links
+colno <- c(1,2)
+rowno <- c(1:nrow(links_chord))
+for (c in colno){
+  for (r in rowno){
+    links_chord[r,c] <- nodes$name[which(nodes[,1] %in% links_chord[r,c])]
+  }
+}
+rm(colno, rowno, c, r)
+links_chord <- links_chord[order(links_chord$to, links_chord$keyword, links_chord$from),]
+farben17 <- c("#ff86de",
+"#409f00",
+"#460090",
+"#dcc300",
+"#001d75",
+"#ff9c35",
+"#6d84ff",
+"#ff3c25",
+"#01d699",
+"#9d0016",
+"#31c1ff",
+"#624300",
+"#afc0ff",
+"#00422f",
+"#ff968a",
+"#85d5c6",
+"#c9cb7e")
+coul17 <- c()
+rowno <- c(1:nrow(links_chord))
+for (r in rowno){
+  coul17 <- append(coul17, farben17[links_chord[r,6]])
+}
+rm(rowno, r)
+names(links_chord) <- c("from", "to", "width", "keyword", "value", "sdg")
+links_chord$width <- as.numeric(links_chord$width)
+links_chord$value <- as.numeric(links_chord$value)
+links_chord$sdg <- as.numeric(links_chord$sdg)
+
+# Preparation der Reihenfolge des plottens
+order_chord <- data.frame(betweenness = round(igraph::betweenness(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = nodes$name), directed = F))), degree = igraph::degree(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = nodes$name), directed = F)), nodes = nodes$name, gridcol = farben_ntw)
+#order_chord <- order_chord[order(order_chord$degree, decreasing = T),]
+gridcol <- as.vector(order_chord$gridcol)
+names(gridcol) <- order_chord$nodes
+
+# Plot
+#par(mfrow=c(1,1))
+circos.clear()
+circos.par(start.degree = 90, clock.wise = TRUE)
+chordDiagram(links_chord,
+             order = order_chord$nodes,
+             annotationTrack = "grid", preAllocateTracks = 1,
+             grid.col = gridcol,
+             col = coul17,
+             link.sort = "overall")#, ink.decreasing = FALSE)
+circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+  circos.text(mean(xlim), ylim[1] + .1, sector.name)#, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5), cex = 0.6)
+  }, bg.border = NA)
+
+
+detach("package:circlize", unload=TRUE)
+detach("package:statnet", unload=TRUE)
+detach("package:igraph", unload=TRUE)
+detach("package:RColorBrewer", unload=TRUE)
+```
+
