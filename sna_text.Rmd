@@ -72,18 +72,26 @@ tidy_SDGs %>% count(word, sort = TRUE)
 ## Load NBS
 NBS_raw <- read_pdf("Daten/broschuere_biolog_vielfalt_strategie_bf.pdf")
 tidy_NBS <- NBS_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_NBS %>% count(word, sort = TRUE)
+tidy_NBS$document <- "NBS"
 
 ## Load DNS
 DNS_raw <- textreadr::read_pdf("Daten/2017-01-11-nachhaltigkeitsstrategie.pdf")
 tidy_DNS <- DNS_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_DNS %>% count(word, sort = TRUE)
+tidy_DNS$document <- "DNS"
 
 ## Load NSO
 NSO_raw <- read_pdf("Daten/naturschutz-offensive_2020_broschuere_bf.pdf")
 tidy_NSO <- NSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_NSO %>% count(word, sort = TRUE)
+tidy_NSO$document <- "NSO"
 
 ## Load Peer Review der DNS
 #PRNSO_raw <- read_pdf("Daten/2018_Peer_Review_of_German_Sustainability_Strategy_BITV_Deutscher-Teil.pdf")
 #tidy_PRNSO <- PRNSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+
+tidy_corpus <- rBind(tidy_DNS, tidy_NBS, tidy_NSO)
 ```
 
 ```{r Vorbereitung der Daten, eval=FALSE}
@@ -156,31 +164,49 @@ tidy_documents
 ```{r Analyse, eval=FALSE}
 library(tidytext)
 library(dplyr)
-library(ggplot2)
 
+# stichworte
 total_words <- tidy_documents %>% 
   group_by(document) %>% 
   summarize(total = sum(count))
 tidy_documents <- left_join(tidy_documents, total_words)
 
-ggplot(tidy_documents, aes(count/total, fill = document)) +
-  geom_histogram(show.legend = FALSE, bins = 100) +
-  xlim(NA, 0.15) +
-  facet_wrap(~document, ncol = 2, scales = "free_y")
-
 documents_tfidf <- tidy_documents %>%
   bind_tf_idf(term, document, count) %>%
   arrange(desc(tf_idf))
 
-documents_tfidf
-xlsx::write.xlsx(documents_tfidf, file = "SDGs_term-frequency-stats.xls")
+tf_idf_ <- documents_tfidf$tf_idf / documents_tfidf$total + documents_tfidf$tf_idf
+documents_tfidf_ <- cBind(documents_tfidf, tfidf_)
+documents_tfidf_ <- documents_tfidf_ %>%
+  arrange(desc(tf_idf_))
+documents_tfidf_
 
-tfidf <- as.data.frame(documents_tfidf)
+xlsx::write.xlsx(documents_tfidf_, file = "SDGs_term-frequency-stats.xls")
+
+tidy_SDGs_tfidf <- tidy_SDGs
+tidy_SDGs_tfidf$tfidf <- NA
+DNS_tfidf <- subset(documents_tfidf, documents_tfidf$document == "DNS")
+row <- c(1:nrow(tidy_SDGs_tfidf))
+for (r in row){
+  tidy_SDGs_tfidf[r,3] <- DNS_tfidf$tf_idf[which(as.character(tidy_SDGs_tfidf[r,2]) %in% DNS_tfidf[,2])]
+}
 1. werte den stichworten zuordnen
-xlsx::write.xlsx(unique_documents_tfidf, file = "SDGs_Stichworte_tfidf.xls")
+#xlsx::write.xlsx(tidy_SDGs_tfidf, file = "SDGs_Stichworte_tfidf.xls")
 2. per sdg subsetten und nach werten sortieren
 3. stichwort mit je höchstem wert in dataframe oder vector ablegen
 
+# corpus
+tidy_corpus %>% count(document, word, sort = TRUE)
+total_words_corpus <- tidy_corpus %>% 
+  count(document, word, sort = TRUE) %>%
+  group_by(document) %>% 
+  summarize(total = sum(n))
+tidy_corpus <- left_join(tidy_corpus, total_words_corpus)
+corpus_tfidf <- tidy_corpus %>% 
+  count(document, word, sort = TRUE) %>%
+  bind_tf_idf(word, document, n) %>%
+  arrange(desc(tf_idf))
+corpus_tfidf
 ```
 
 
