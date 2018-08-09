@@ -175,21 +175,11 @@ documents_tfidf <- tidy_documents %>%
 documents_tfidf
 xlsx::write.xlsx(documents_tfidf, file = "SDGs_term-frequency-stats.xls")
 
-unique_documents_tfidf <- documents_tfidf[which(documents_tfidf$tf_idf != 0),]
-unique_documents_tfidf <- as.vector(unique(unique_documents_tfidf$term))
+tfidf <- as.data.frame(documents_tfidf)
+1. werte den stichworten zuordnen
 xlsx::write.xlsx(unique_documents_tfidf, file = "SDGs_Stichworte_tfidf.xls")
-
-documents_tfidf %>%
-  arrange(desc(tf_idf)) %>%
-  mutate(term = factor(term, levels = rev(unique(term)))) %>% 
-  group_by(document) %>% 
-  top_n(15) %>% 
-  ungroup() %>%
-  ggplot(aes(term, tf_idf, fill = term)) +
-  geom_col(show.legend = FALSE) +
-  labs(x = NULL, y = "tf-idf") +
-  facet_wrap(~document, ncol = 2, scales = "free") +
-  coord_flip()
+2. per sdg subsetten und nach werten sortieren
+3. stichwort mit je höchstem wert in dataframe oder vector ablegen
 
 ```
 
