@@ -89,10 +89,15 @@ nbs_bigram <- NBS_df %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
 nbs_bigram %>% count(bigram, sort = TRUE)
 nbs_bigram_sep <- nbs_bigram %>% separate(bigram, c("word1", "word2"), sep = " ")
 nbs_bigram_filter <- nbs_bigram_sep %>%  filter(!word1 %in% stopwords_de$word) %>% 
-                                         filter(!word2 %in% stopwords_de$word)
+                                         filter(!word2 %in% stopwords_de$word) %>%
+                                         filter(!word1 == "NA") %>% filter(!word2 == "NA")
+nbs_bigram_counts <- nbs_bigram_filter %>% count(word1, word2, sort = TRUE)
 nbs_bigram_reun <- nbs_bigram_filter %>%  unite(bigram, word1, word2, sep = " ")
 nbs_bigram_reun %>% count(bigram, sort = TRUE)
 
+nbs_bigram_graph <- nbs_bigram_counts %>% filter(n > 20) %>% igraph::graph_from_data_frame()
+nbs_bigram_graph$degree <- igraph::degree(nbs_bigram_graph)
+plot(nbs_bigram_graph)
 
 ## Load DNS
 DNS_raw <- read_document("Daten/dns_plaintext.docx")
