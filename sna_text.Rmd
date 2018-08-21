@@ -53,12 +53,17 @@ if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
 if("Matrix" %in% rownames(installed.packages())   == FALSE){
   install.packages("Matrix")}
+if("tidyr" %in% rownames(installed.packages())   == FALSE){
+  install.packages("tidyr")}
 ```
 
 ```{r Laden der Rohdaten, eval=FALSE}
 library(tidytext)
 library(textreadr)
 library(dplyr)
+library(tidyr)
+
+stopwords_de <- get_stopwords(language = "de")
 
 ## Load SDGs
 SDGs_raw <- read_docx("Daten/SDGs_deutsch.docx")
@@ -66,32 +71,41 @@ SDGs_df <- data_frame(line = 1:17, text = SDGs_raw)
 
 tidy_SDGs <- SDGs_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_SDGs <- tidy_SDGs[-which(duplicated(tidy_SDGs)),]
-xlsx::write.xlsx(tidy_SDGs, file = "SDGs_Stichworte.xls")
+#xlsx::write.xlsx(tidy_SDGs, file = "SDGs_Stichworte.xls")
 tidy_SDGs %>% count(word, sort = TRUE)
+SDGs_stem <- xlsx::read.xlsx(file = "Daten/SDGs_Stichworte.xls", sheetIndex = 1, encoding="UTF-8")
+SDGs_stem <- SDGs_stem[,-c(1,3)]
+names(SDGs_stem) <- c("line", "word")
+tidy_SDGs <- SDGs_stem %>% count(word, sort = TRUE)
 
 ## Load NBS
-NBS_raw <- read_pdf("Daten/broschuere_biolog_vielfalt_strategie_bf.pdf")
-tidy_NBS <- NBS_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+NBS_raw <- read_document("Daten/nbs_plaintext.docx")
+NBS_df <- data_frame(line = 1:length(NBS_raw), text = NBS_raw)
+tidy_NBS <- NBS_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_NBS %>% count(word, sort = TRUE)
 tidy_NBS$document <- "NBS"
 
+nbs_bigram <- NBS_df %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
+nbs_bigram %>% count(bigram, sort = TRUE)
+nbs_bigram_sep <- nbs_bigram %>% separate(bigram, c("word1", "word2"), sep = " ")
+nbs_bigram_filter <- nbs_bigram_sep %>%  filter(!word1 %in% stopwords_de$word) %>% 
+                                         filter(!word2 %in% stopwords_de$word)
+nbs_bigram_reun <- nbs_bigram_filter %>%  unite(bigram, word1, word2, sep = " ")
+nbs_bigram_reun %>% count(bigram, sort = TRUE)
+
+
 ## Load DNS
-DNS_raw <- textreadr::read_pdf("Daten/2017-01-11-nachhaltigkeitsstrategie.pdf")
+DNS_raw <- read_document("Daten/dns_plaintext.docx")
 tidy_DNS <- DNS_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_DNS %>% count(word, sort = TRUE)
 tidy_DNS$document <- "DNS"
 
 ## Load NSO
-NSO_raw <- read_pdf("Daten/naturschutz-offensive_2020_broschuere_bf.pdf")
+NSO_raw <- read_document("Daten/nso_plaintext.docx")
 tidy_NSO <- NSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_NSO %>% count(word, sort = TRUE)
 tidy_NSO$document <- "NSO"
 
-## Load Peer Review der DNS
-#PRNSO_raw <- read_pdf("Daten/2018_Peer_Review_of_German_Sustainability_Strategy_BITV_Deutscher-Teil.pdf")
-#tidy_PRNSO <- PRNSO_raw %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
-
-tidy_corpus <- rBind(tidy_DNS, tidy_NBS, tidy_NSO)
 ```
 
 ```{r Vorbereitung der Daten, eval=FALSE}
@@ -104,7 +118,6 @@ SDGs <- as.vector(tidy_SDGs$word)
 NBS <- as.vector(tidy_NBS$word)
 DNS <- as.vector(tidy_DNS$word)
 NSO <- as.vector(tidy_NSO$word)
-#PRDNS <- as.vector(tidy_PRNSO$word)
 
 Gdata <- tidy_SDGs
 names(Gdata) <- c("SDG", "stichwort")
@@ -116,8 +129,6 @@ Gdata$DNS <- NA
 Gdata$DNS_rel <- NA
 Gdata$NSO <- NA
 Gdata$NSO_rel <- NA
-#Gdata$PRDNS <- NA
-#Gdata$PRDNS_rel <- NA
 
 anzahlSDGs <- c(1:length(SDGs))
 for (n in anzahlSDGs){
@@ -128,8 +139,6 @@ for (n in anzahlSDGs){
   Gdata[n,8] <- round(length(which(SDGs[n] == DNS))/length(DNS)*1000, digits = 2)
   Gdata[n,9] <- length(which(SDGs[n] == NSO))
   Gdata[n,10] <- round(length(which(SDGs[n] == NSO))/length(NSO)*1000, digits = 2)
-#  Gdata[n,11] <- length(which(SDGs[n] == PRDNS))
-#  Gdata[n,12] <- round(length(which(SDGs[n] == PRDNS))/length(PRDNS)*1000, digits = 2)
 }
 rm(anzahlSDGs, n)
 
@@ -175,13 +184,31 @@ documents_tfidf <- tidy_documents %>%
   bind_tf_idf(term, document, count) %>%
   arrange(desc(tf_idf))
 
+xlsx::write.xlsx(documents_tfidf, file = "SDGs_term-frequency-stats.xls")
+
+stichworte <- subset(documents_tfidf, documents_tfidf$tf_idf == 0)
+stichworte <- unique(stichworte$term)
+xlsx::write.xlsx(stichworte, file = "Stichworte.xls")
+
+
+SDGs_stem$chosen_for_qual_analysis <- NA
+rows <- c(1:nrow(SDGs_stem))
+for (r in rows){
+  if (SDGs_stem[r,2] %in% stichworte){
+    SDGs_stem[r,3] <- as.character(SDGs_stem[r,2])
+  }
+}
+rm(rows, r)
+xlsx::write.xlsx(SDGs_stem, file = "Stichworte_chosen.xls")
+
+```
+
+```{r zum rumspielen, eval=FALSE}
 tf_idf_ <- documents_tfidf$tf_idf / documents_tfidf$total + documents_tfidf$tf_idf
-documents_tfidf_ <- cBind(documents_tfidf, tfidf_)
+documents_tfidf_ <- cBind(documents_tfidf, tf_idf_)
 documents_tfidf_ <- documents_tfidf_ %>%
   arrange(desc(tf_idf_))
 documents_tfidf_
-
-xlsx::write.xlsx(documents_tfidf_, file = "SDGs_term-frequency-stats.xls")
 
 tidy_SDGs_tfidf <- tidy_SDGs
 tidy_SDGs_tfidf$tfidf <- NA
