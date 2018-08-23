@@ -501,7 +501,9 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "2010-2018")
+Gdata <- subset_workshops(Gdata_WS, subset = "nefobiodiv")
+Gdata <- subset_workshops(Gdata, subset = "2013")
+
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -558,7 +560,7 @@ workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows
 workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_alle.xls") ### EDIT
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_biodiv_2012.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
@@ -610,7 +612,7 @@ detach("package:igraph", unload=TRUE)
 ```{r zeitlich, eval=FALSE}
 library(xlsx)
 
-zeitlich <- read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
+zeitlich <- read.xlsx(file = "Ergebnisse/biodiv_zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
 
 # Institutionen pro Kategorie
 plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
@@ -802,15 +804,17 @@ V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
 V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 0.5 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
 V(ws2)$vertex.size <- 3 * V(ws2)$degree / max(V(ws2)$degree) + 5
-V(ws2)$partnames <- V(ws2)$name
-V(ws2)$partnames[V(ws2)$type == "workshop"] <- NA
+V(ws2)$instnames <- V(ws2)$name
+V(ws2)$instnames[V(ws2)$type == "workshop"] <- NA
+V(ws2)$wsnames <- V(ws2)$name
+V(ws2)$wsnames[V(ws2)$type == "institution"] <- NA
 V(ws2)$framecolorcover <- NA
 V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
 
 ## Workshops
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
-     vertex.label = V(ws2)$partnames, vertex.label.family = "Calibri",
+     vertex.label = V(ws2)$instnames, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
@@ -827,15 +831,36 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
-## Kombination
+## Workshops: Kategorien mit WS Name
+par(mfrow=c(1,1))
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
+     vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
+     vertex.frame.color = V(ws2)$framecolorcover, 
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws)
+
+## Kombination 1
 par(mfrow=c(1,2))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
-     vertex.label = V(ws2)$partnames, vertex.label.family = "Calibri",
+     vertex.label = V(ws2)$instnames, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws)
+
+## Kombination 2
+par(mfrow=c(1,2))
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
+     vertex.label = V(ws2)$instnames, vertex.label.family = "Calibri",
+     vertex.frame.color = NA, vertex.label.color = "black",
+     edge.arrow.size = 0, edge.color = E(ws2)$color_st,
+     layout = lyout_ws)
+plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
+     vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
+     vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
