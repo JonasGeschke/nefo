@@ -501,9 +501,8 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "nefobiodiv")
-Gdata <- subset_workshops(Gdata, subset = "2013")
-
+Gdata <- subset_workshops(Gdata_WS, subset = "2010-2018")
+# ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -583,6 +582,44 @@ length(which(V(ws2)$kategorie == "keine Angabe"))
 detach("package:igraph", unload=TRUE)
 ```
 
+```{r Strategische Analyse, eval=FALSE}
+WS_av <- WS_info[-c(24,28,31,39),]
+WS_av$TN <- NA
+
+for (ws in c(1:37)){
+  WS_av[ws,7] <- nrow(subset(links_ws2, links_ws2$from == paste("ws", ws, sep = "")))
+}
+
+sum(WS_av[which(WS_av$Jahr == "2018"),7])
+
+zeitlich_ws <- xlsx::read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 2, encoding="UTF-8")
+workshops <- c(paste("WS", zeitlich_ws[,1], sep = ""))
+rows <- c(1:nrow(zeitlich_ws))
+for (r in rows){
+  ws <- paste("WS", zeitlich_ws[r,1], sep = "")
+  ss <- subset(links_ws1, links_ws1$network == ws)
+  ss <- data.frame(inst = c(ss[1,1], subset(ss, ss$from == ss[1,1])$to), kategorie = NA)
+  for(k in c(1:nrow(ss))){
+    ss[k,2] <- nodes_ws1[which(nodes_ws1$id == ss[k,1]),5]
+  }
+  zeitlich_ws[r,2] <- length(which(ss$kategorie == "Wissenschaft"))
+  zeitlich_ws[r,3] <- length(which(ss$kategorie == "Behoerde"))
+  zeitlich_ws[r,4] <- length(which(ss$kategorie == "Wirtschaft"))
+  zeitlich_ws[r,5] <- length(which(ss$kategorie == "Verbaende"))
+  zeitlich_ws[r,6] <- length(which(ss$kategorie == "Medien"))
+  zeitlich_ws[r,7] <- length(which(ss$kategorie == "keine Angabe"))
+}
+rm(rows, r, k, ss, ws)
+zeitlich_ws$Institutionen <- rowSums(zeitlich_ws[,c(2:7)])
+zeitlich_ws$Wissenschaft_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Wissenschaft, digits = 0)
+zeitlich_ws$Behoerde_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Behoerde, digits = 0)
+zeitlich_ws$Wirtschaft_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Wirtschaft, digits = 0)
+zeitlich_ws$Verbaende_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Verbaende, digits = 0)
+zeitlich_ws$Medien_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Medien, digits = 0)
+zeitlich_ws$keine_Angabe_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$keine_Angabe, digits = 0)
+```
+
+
 
 # Visualisierung
 
@@ -612,7 +649,7 @@ detach("package:igraph", unload=TRUE)
 ```{r zeitlich, eval=FALSE}
 library(xlsx)
 
-zeitlich <- read.xlsx(file = "Ergebnisse/biodiv_zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
+zeitlich <- read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 1, encoding="UTF-8")
 
 # Institutionen pro Kategorie
 plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
@@ -726,6 +763,51 @@ legend("topright", legend = c("Netzwerk-Dichte"),
        bty = "n", cex = 1)
 summary(glm(zeitlich$Dichte_aufbauend ~ zeitlich$Jahr)) # p=0.2
 
+
+# Institutionen pro Kategorie pro Workshop
+plot(zeitlich_ws$Wissenschaft ~ zeitlich_ws$Workshop, col = rgb(92,139,255,max=255),
+     xlab = "Workshop",
+     ylab = "Anzahl Institutionen",
+     pch = 4,
+     ylim = c(0,35))
+points(zeitlich_ws$Behoerde ~ jitter(zeitlich_ws$Workshop, .1), col = rgb(219,174,0,max=255), pch = 4)
+points(zeitlich_ws$Wirtschaft ~ jitter(zeitlich_ws$Workshop, .1), col = rgb(11,33,94,max=255), pch = 4)
+points(zeitlich_ws$Verbaende ~ jitter(zeitlich_ws$Workshop, .1), col = rgb(0,155,68,max=255), pch = 4)
+points(zeitlich_ws$Medien ~ jitter(zeitlich_ws$Workshop, .1), col = rgb(180,33,0,max=255), pch = 4)
+abline(glm(zeitlich_ws$Wissenschaft ~ zeitlich_ws$Workshop), col = rgb(92,139,255,max=255))
+abline(glm(zeitlich_ws$Behoerde ~ zeitlich_ws$Workshop), col = rgb(219,174,0,max=255))
+abline(glm(zeitlich_ws$Wirtschaft ~ zeitlich_ws$Workshop), col = rgb(11,33,94,max=255))
+abline(glm(zeitlich_ws$Verbaende ~ zeitlich_ws$Workshop), col = rgb(0,155,68,max=255))
+abline(glm(zeitlich_ws$Medien ~ zeitlich_ws$Workshop), col = rgb(180,33,0,max=255))
+abline(glm(zeitlich_ws$Institutionen*.5 ~ zeitlich_ws$Workshop), col = "dark grey", lty = 2)
+legend("topright", legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", 
+                              "GLM der Anzahl Institutionen / 2"), 
+       fill = c(rgb(92,139,255,max=255), rgb(219,174,0,max=255), 
+               rgb(11,33,94,max=255), rgb(0,155,68,max=255), rgb(180,33,0,max=255), "dark grey"),
+       bty = "n", cex = 1)
+
+par(mar=c(5.1, 4.1, 4.1, 10.1), xpd=TRUE)
+xy <- barplot(prop.table(t(zeitlich_ws[,c(2:7)]), 2)*100,
+        xaxt = "n",
+        col = c(rgb(92,139,255,max=255), 
+                rgb(219,174,0,max=255), 
+                rgb(11,33,94,max=255), 
+                rgb(0,155,68,max=255), 
+                rgb(180,33,0,max=255), 
+                rgb(255,161,213,max=255)))
+abline(h = 50, lty = 2)
+abline(h = mean(zeitlich_ws$Wissenschaft_rel), lty = 2)
+text(cex=1, x=xy-.25, y=-5, workshops, xpd=TRUE, srt=90)
+legend("topright", inset=c(-0.3,0),
+       legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", "keine Angabe"),
+       fill = c(rgb(92,139,255,max=255), 
+                rgb(219,174,0,max=255), 
+                rgb(11,33,94,max=255), 
+                rgb(0,155,68,max=255), 
+                rgb(180,33,0,max=255), 
+                rgb(255,161,213,max=255)),
+      bty = "n")
+
 detach("package:xlsx", unload=TRUE)
 ```
 
@@ -801,7 +883,7 @@ V(ws2)$color_k[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
-V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 0.5 # Workshops
+V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 1 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
 V(ws2)$vertex.size <- 3 * V(ws2)$degree / max(V(ws2)$degree) + 5
 V(ws2)$instnames <- V(ws2)$name
