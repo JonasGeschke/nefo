@@ -795,9 +795,12 @@ xy <- barplot(prop.table(t(zeitlich_ws[,c(2:7)]), 2)*100,
                 rgb(0,155,68,max=255), 
                 rgb(180,33,0,max=255), 
                 rgb(255,161,213,max=255)))
-abline(h = 50, lty = 2)
-abline(h = mean(zeitlich_ws$Wissenschaft_rel), lty = 2)
-text(cex=1, x=xy-.25, y=-5, workshops, xpd=TRUE, srt=90)
+abline(h = 50, lty = 2, xpd=F)
+abline(h = mean(zeitlich_ws$Wissenschaft_rel), lty = 3, xpd=F)
+text(cex=1, x=max(xy)+3, y=mean(zeitlich_ws$Wissenschaft_rel), "Ø Wissenschaft", xpd=TRUE, pos = 4)
+text(cex=1, x=max(xy)+3, y=50, "50%", xpd=TRUE, pos = 4)
+text(cex=1, x=-2, y=-5, "%", xpd=TRUE, srt=90)
+text(cex=1, x=xy, y=-5, workshops, xpd=TRUE, srt=90)
 legend("topright", inset=c(-0.3,0),
        legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", "keine Angabe"),
        fill = c(rgb(92,139,255,max=255), 
@@ -806,7 +809,7 @@ legend("topright", inset=c(-0.3,0),
                 rgb(0,155,68,max=255), 
                 rgb(180,33,0,max=255), 
                 rgb(255,161,213,max=255)),
-      bty = "n")
+       bty = "n")
 
 detach("package:xlsx", unload=TRUE)
 ```
