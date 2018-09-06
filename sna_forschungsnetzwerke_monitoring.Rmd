@@ -407,11 +407,11 @@ farben_fn1_cut <- coul7[palette_fn1_cut]
 
 palette_fn2 <- as.numeric(degree(fn2)+1) # Farbpalette entsprechend vertex.size
 farben_fn2 <- coul6[palette_fn2]
-farben_fn2[(length(degree(fn2))-10):length(degree(fn2))] <- "dark grey"
+farben_fn2[(length(degree(fn2))-(ncol(Gdata_FN)-1)):length(degree(fn2))] <- "dark grey"
 
 palette_fn2_cut <- as.numeric(degree(fn2_cut)+1) # Farbpalette entsprechend vertex.size
 farben_fn2_cut <- coul6[palette_fn2_cut]
-farben_fn2_cut[(length(degree(fn2_cut))-10):length(degree(fn2_cut))] <- "dark grey"
+farben_fn2_cut[(length(degree(fn2_cut))-(ncol(Gdata_FN)-1)):length(degree(fn2_cut))] <- "dark grey"
 
 palette_fn2_cut_netzwerke <- as.numeric(degree(fn2_cut)+1)
 palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke == 1)] <- 1
