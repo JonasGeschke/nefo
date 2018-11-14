@@ -16,7 +16,7 @@ output:
 
 # Einleitung
 Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der Teilnehmer-Listen der von NeFo organisierten und initiierten Workshops. Das Skrpit ist  verfügbar unter https://github.com/JonasGeschke/nefo
-Die Netzwerkanalyse selbst ist verfügbar unter XXX
+Die Netzwerkanalyse selbst ist verfügbar unter http://www.biodiversity.de/produkte/studien/vernetzung-deutschen-biodiversitatsforschung-soziale-netzwerkanalyse-perspektive
 
 
 # Einstellungen

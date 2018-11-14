@@ -1,7 +1,7 @@
 ---
-title: "Soziale Netzwerkanalyse: NeFo-Forschungsatlas"
+title: "Soziale Netzwerkanalyse: Projekte"
 author: "Jonas Geschke"
-date: "2017, 2018"
+date: "2018"
 header-includes:
    - \usepackage{longtable}
 output:
@@ -15,8 +15,8 @@ output:
 ---
 
 # Einleitung
-Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage des NeFo-Forschungsatlas. Das Skrpit ist verfügbar unter https://github.com/JonasGeschke/nefo
-Die Netzwerkanalyse selbst ist verfügbar unter http://www.biodiversity.de/produkte/studien/vernetzung-deutschen-biodiversitatsforschung-soziale-netzwerkanalyse-perspektive
+Dieses ist das Skript der Netzwerkanalyse zu NeFo auf Grundlage der von DFG und der verschiedenen Bundesressorts geförderten Projekte. Das Skrpit ist verfügbar unter https://github.com/JonasGeschke/nefo
+Die Netzwerkanalyse selbst ist verfügbar unter XXX
 
 
 # Einstellungen
