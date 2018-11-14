@@ -31,8 +31,8 @@ Die Netzwerkanalyse selbst ist verfügbar unter XXX
 # 
 # setwd("")
 
-#setwd("/Volumes/NO NAME/MfN/Netzwerkanalyse_NeFo/R") # Stick
-setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_NeFo/R") # Buero
+#setwd("/Volumes/NO NAME/MfN/Netzwerkanalyse_Projekte/R") # Stick
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R") # Buero
 ```
 
 ```{r install packages, eval=FALSE}
@@ -61,7 +61,7 @@ if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
 ```
 
-```{r set additional functions, eval=FALSE}
+```{r set additional functions #####EDIT#####, eval=FALSE}
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
@@ -139,8 +139,10 @@ create_links_forschungsnetzwerke_1mode <- function(Gdata){
 # Analyse
 
 ```{r Laden der Rohdaten und Vorbereitung der Daten, eval=FALSE}
+library(xlsx)
 ## Load raw data
-Raw_forschungsnetzwerk <- read.csv2("Daten/forschungsnetzwerk.csv", sep=",", dec=".", header=T, encoding="UTF-8")
+Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+
 
 ## Prepare dataset "FN"
 Gdata_FN <- Raw_forschungsnetzwerk
