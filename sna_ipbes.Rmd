@@ -344,4 +344,9 @@ plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ntw)$edge.col,
      layout = lyout)
+legend(0.5,0.5, legend = c("Pol", "Sce", "LDR", "Afr", "Asi", "Ame", "ECA"), fill=assessmentcol)
+
+authors_sna <- cbind(nodes,
+                     degree = V(ntw)$degree,
+                     betweenness = V(ntw)$betweenness)
 ```
