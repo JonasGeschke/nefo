@@ -176,8 +176,10 @@ all <- unique(all)
 all_num <- as.data.frame(table(all$CC))
 
 countries_all <- joinCountryData2Map(all_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_all, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_all, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - all assessments completed by 2018 -")
 ```
 
@@ -190,8 +192,10 @@ thematic_num <- as.data.frame(table(thematic$CC))
 thematic_num <- subset(thematic_num, Freq != 0)
 
 countries_thematic <- joinCountryData2Map(thematic_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_thematic, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_thematic, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - thematic assessments completed by 2018 -")
 ```
 
@@ -204,8 +208,10 @@ LDR_num <- as.data.frame(table(LDR$CC))
 LDR_num <- subset(LDR_num, Freq != 0)
 
 countries_LDR <- joinCountryData2Map(LDR_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_LDR, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_LDR, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - LDR assessment -")
 ```
 
@@ -218,8 +224,10 @@ ECA_num <- as.data.frame(table(ECA$CC))
 ECA_num <- subset(ECA_num, Freq != 0)
 
 countries_ECA <- joinCountryData2Map(ECA_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_ECA, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_ECA, mapRegion = "eurasia",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - ECA assessment -")
 ```
 
@@ -232,8 +240,10 @@ Asi_num <- as.data.frame(table(Asi$CC))
 Asi_num <- subset(Asi_num, Freq != 0)
 
 countries_Asi <- joinCountryData2Map(Asi_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_Asi, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_Asi, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - Asia-Pacific assessment -")
 ```
 
@@ -246,8 +256,10 @@ Afr_num <- as.data.frame(table(Afr$CC))
 Afr_num <- subset(Afr_num, Freq != 0)
 
 countries_Afr <- joinCountryData2Map(Afr_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_Afr, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_Afr, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - Africa assessment -")
 ```
 
@@ -260,13 +272,15 @@ Ame_num <- as.data.frame(table(Ame$CC))
 Ame_num <- subset(Ame_num, Freq != 0)
 
 countries_Ame <- joinCountryData2Map(Ame_num, joinCode = "ISO2", nameJoinColumn = "Var1")
-mapCountryData(countries_Ame, nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
-               colourPalette = "white2Black", missingCountryCol = "white", oceanCol = "light blue",
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_Ame, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - The Americas assessment -")
 ```
 
 
-# Netzwerke
+# Netzwerkanalyse
 
 ```{r all, eval=FALSE}
 authors <- authors[order(authors$Assessment, authors$Chapter, authors$Level, authors$CC, authors$Name),]
@@ -295,346 +309,39 @@ for(n in assessment_num){
       t <- t+1
       if (t==max(rowssubset)){break}}
   }
-  }
+}
 links <- subset(links, !is.na(links$to))
+rm(assessment, assessment_num, n, r, t, rowssubset)
 
 library(igraph)
 ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
-lyout <- layout.auto(ntw) #layout.fruchterman.reingold(ntw)
-plot(ntw, vertex.size = 2, vertex.color = "grey",
+
+V(ntw)$degree <- degree(ntw)
+V(ntw)$betweenness <- betweenness(ntw, directed = F)
+
+V(ntw)$vertex.size <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
+
+betwennesscol <- RColorBrewer::brewer.pal(9, "YlOrRd")
+V(ntw)$vertex.col[V(ntw)$vertex.size == 2] <- "light grey" # betwennesscol[3]
+V(ntw)$vertex.col[V(ntw)$vertex.size > 2] <- betwennesscol[4] # 147 - 121
+V(ntw)$vertex.col[V(ntw)$vertex.size > 3] <- betwennesscol[5] # 26 - 18
+V(ntw)$vertex.col[V(ntw)$vertex.size > 4] <- betwennesscol[6] # 8 - 4
+V(ntw)$vertex.col[V(ntw)$vertex.size > 5] <- betwennesscol[7] # 4 - 3
+V(ntw)$vertex.col[V(ntw)$vertex.size > 6] <- betwennesscol[8] # 1
+
+assessmentcol <- c("#39ca00","#1e1272","#a4d721","#008cf4","#2be199","#ff60b3","#01d2f8") #RColorBrewer::brewer.pal(7, "Set2")
+E(ntw)$edge.col[E(ntw)$assessment == "Pol"] <- assessmentcol[1]
+E(ntw)$edge.col[E(ntw)$assessment == "Sce"] <- assessmentcol[2]
+E(ntw)$edge.col[E(ntw)$assessment == "LDR"] <- assessmentcol[3]
+E(ntw)$edge.col[E(ntw)$assessment == "Afr"] <- assessmentcol[4]
+E(ntw)$edge.col[E(ntw)$assessment == "Asi"] <- assessmentcol[5]
+E(ntw)$edge.col[E(ntw)$assessment == "Ame"] <- assessmentcol[6]
+E(ntw)$edge.col[E(ntw)$assessment == "ECA"] <- assessmentcol[7]
+
+lyout <- layout.fruchterman.reingold(ntw) #layout.auto(ntw)
+plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
      vertex.label = NA, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
      vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
+     edge.arrow.size = 0, edge.color = E(ntw)$edge.col,
      layout = lyout)
 ```
-
-
-```{r Graph-objects, eval=FALSE}
-library(igraph)
-
-# 1-mode
-nodes_fn1 <- create_nodes_forschungsnetzwerke_1mode(Gdata_FN)
-links_fn1 <- create_links_forschungsnetzwerke_1mode(Gdata_FN)
-fn1 <- graph_from_data_frame(d = links_fn1, vertices = nodes_fn1, directed = F)
-fn1_cut <- delete.isolates(fn1)
-
-# 2-mode
-fn2 <- graph.incidence(Gdata_FN)
-fn2_cut <- delete.isolates(fn2)
-
-# Berechnung statistischer Standardwerte
-V(fn1)$degree <- degree(fn1)
-V(fn1)$betweenness <- betweenness(fn1, directed = F)
-V(fn1_cut)$degree <- degree(fn1_cut)
-V(fn1_cut)$betweenness <- betweenness(fn1_cut, directed = F)
-V(fn2)$degree <- degree(fn2)
-V(fn2)$betweenness <- betweenness(fn2, directed = F)
-V(fn2_cut)$degree <- degree(fn2_cut)
-V(fn2_cut)$betweenness <- betweenness(fn2_cut, directed = F)
-
-detach("package:igraph", unload=TRUE)
-```
-
-```{r SNA, eval=FALSE}
-library(igraph)
-
-forschungsnetzwerke_sna <- data.frame(name = append(colnames(Gdata_FN),rownames(Gdata_FN)))
-forschungsnetzwerke_sna$fullname <- NA
-forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),2] <- paste(Raw_forschungsnetzwerk$Name)
-forschungsnetzwerke_sna$type <- NA
-forschungsnetzwerke_sna[1:length(colnames(Gdata_FN)),3] <- "netzwerk"
-forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),3] <- "institution"
-forschungsnetzwerke_sna$kategorie <- NA
-forschungsnetzwerke_sna$degree1 <- NA
-forschungsnetzwerke_sna$betweenness1 <- NA
-forschungsnetzwerke_sna$degree2 <- NA
-forschungsnetzwerke_sna$betweenness2 <- NA
-
-rows1 <- c((ncol(Gdata_FN)+1):nrow(forschungsnetzwerke_sna))
-rows2 <- c(1:ncol(Gdata_FN))
-forschungsnetzwerke_sna[rows1,5] <- degree(fn1)
-forschungsnetzwerke_sna[rows1,6] <- round(betweenness(fn1),digits=2)
-forschungsnetzwerke_sna[rows1,7] <- degree(fn2)[1:nrow(Gdata_FN)]
-forschungsnetzwerke_sna[rows2,7] <- degree(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]
-forschungsnetzwerke_sna[rows1,8] <- round((betweenness(fn2)[1:nrow(Gdata_FN)]),digits=2)
-forschungsnetzwerke_sna[rows2,8] <- round((betweenness(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]),digits=2)
-
-forschungsnetzwerke_sna$degree1rel <- NA
-forschungsnetzwerke_sna$degree2rel <- NA
-forschungsnetzwerke_sna$betweenness1rel <- NA
-forschungsnetzwerke_sna$betweenness2rel <- NA
-forschungsnetzwerke_sna[rows1,9] <- round(forschungsnetzwerke_sna[rows1,5] / max(forschungsnetzwerke_sna[rows1,5]),digits=2)
-forschungsnetzwerke_sna[,10] <- round(forschungsnetzwerke_sna[,7] / max(forschungsnetzwerke_sna[,7]),digits=2)
-forschungsnetzwerke_sna[rows1,11] <- round(forschungsnetzwerke_sna[rows1,6] / max(forschungsnetzwerke_sna[rows1,6]),digits=2)
-forschungsnetzwerke_sna[,12] <- round(forschungsnetzwerke_sna[,8] / max(forschungsnetzwerke_sna[,8]),digits=2)
-
-rm(rows1, rows2)
-xlsx::write.xlsx(forschungsnetzwerke_sna, file = "SNA_Statistik_Forschungsnetzwerke.xls")
-
-graph.density(fn1)
-graph.density(fn1_cut)
-
-detach("package:igraph", unload=TRUE)
-
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 0),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 5),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) > 5),])
-
-colSums(Gdata_FN)
-```
-
-
-# Visualisierung
-
-```{r Deskriptive Statistik, eval=FALSE}
-library(igraph)
-library(RColorBrewer)
-
-plotN <- data.frame(n = c(nrow(Gdata_FN[which(rowSums(Gdata_FN) == 0),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 5),])))
-pie(plotN$n, col = brewer.pal(6, "YlOrBr"), labels = plotN$n, cex = 0.7)
-legend("right", legend = c("0", "1", "2", "3", "4", "5"), fill = brewer.pal(6, "YlOrBr"), bty = "n", cex = 1)
-
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
-```
-
-```{r Betweenness über Degree, eval=FALSE}
-# Analse der Forschungsnetzwerke
-regr_netzwerke <- data.frame(degree = forschungsnetzwerke_sna[c(1:11),7], betweenness = forschungsnetzwerke_sna[c(1:11),8])
-
-plot(regr_netzwerke$betweenness ~ regr_netzwerke$degree,
-     xlab = "Degree-Zentralität",
-     ylab = "Betweenness-Zentralität",
-     pch = 4)
-abline(glm(regr_netzwerke$betweenness ~ regr_netzwerke$degree), col = "blue")
-summary(glm(regr_netzwerke$betweenness ~ regr_netzwerke$degree))
-
-shapiro.test(regr_netzwerke$degree) # p>0,05 = normalverteilt # macht das Sinn?
-shapiro.test(regr_netzwerke$betweenness) # nicht normalverteilt => Korrelation nach Spearman
-cor.test(regr_netzwerke$degree,regr_netzwerke$betweenness,method="spearman")
-
-# Analyse der Institutionen
-regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[-c(1:11),5], betweenness = forschungsnetzwerke_sna[-c(1:11),6])
-
-plot(regr_institutionen$betweenness ~ regr_institutionen$degree,
-     xlab = "Degree-Zentralität",
-     ylab = "Betweenness-Zentralität",
-     pch = 4)
-abline(glm(regr_institutionen$betweenness ~ regr_institutionen$degree), col = "blue")
-summary(glm(regr_institutionen$betweenness ~ regr_institutionen$degree))
-
-shapiro.test(regr_institutionen$degree) # nicht normalverteilt
-shapiro.test(regr_institutionen$betweenness) # nicht normalverteilt => Korrelation nach Spearman
-cor.test(regr_institutionen$degree,regr_institutionen$betweenness,method="spearman")
-```
-
-```{r circlize, eval=FALSE}
-library(circlize)
-library(statnet)
-library(igraph)
-library(RColorBrewer)
-
-# Berechnung einer Farbpalette
-coul7 <- brewer.pal(7, "YlOrBr")
-palette_fn1 <- as.numeric(igraph::degree(fn1)+1) # Farbpalette entsprechend vertex.size
-palette_fn1[which(palette_fn1 == 1)] <- 1
-palette_fn1[which(palette_fn1 %in% c(2:10))] <- 2
-palette_fn1[palette_fn1 %in% c(11:20)] <- 3
-palette_fn1[palette_fn1 %in% c(21:30)] <- 4
-palette_fn1[palette_fn1 %in% c(31:40)] <- 5
-palette_fn1[palette_fn1 %in% c(41:50)] <- 6
-palette_fn1[palette_fn1 > 50] <- 7
-farben_fn1 <- coul7[palette_fn1]
-
-
-# Preparation von Zirkel-Links
-links_chord <- links_fn1
-colno <- c(1,2)
-rowno <- c(1:nrow(links_chord))
-for (c in colno){
-  for (r in rowno){
-    links_chord[r,c] <- nodes_fn1$name[which(nodes_fn1[,1] %in% links_chord[r,c])]
-  }
-}
-rm(colno, rowno, c, r)
-links_chord <- links_chord[order(links_chord$network_no, links_chord$from, links_chord$to),]
-links_chord$value <- c(1:nrow(links_chord))
-institutions <- nodes_fn1$name
-farben10 <- c("greenyellow", "green", "forestgreen", "darkseagreen", "cornflowerblue", "lightslateblue", "navy", "red", "deeppink2", "chocolate4", "black")
-coul10 <- c()
-rowno <- c(1:nrow(links_chord))
-for (r in rowno){
-  coul10 <- append(coul10, farben10[links_chord[r,3]])
-}
-rm(rowno, r)
-names(links_chord) <- c("from", "to", "width", "network", "value")
-links_chord$width <- 1
-
-# Preparation der Reihenfolge des plottens
-order_chord <- data.frame(betweenness = round(igraph::betweenness(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F))), degree = igraph::degree(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F)), actor_abbr = nodes_fn1$name, gridcol = farben_fn1)
-order_chord <- order_chord[order(order_chord$degree),]
-gridcol <- as.vector(order_chord$gridcol)
-names(gridcol) <- order_chord$actor_abbr
-
-# Plot
-par(mfrow=c(1,1))
-chordDiagram(links_chord,
-             order = order_chord$actor_abbr,
-             annotationTrack = "grid", preAllocateTracks = 1,
-             grid.col = gridcol,
-             col = coul10,
-             link.sort = "overall")#, ink.decreasing = FALSE)
-circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
-  xlim = get.cell.meta.data("xlim")
-  ylim = get.cell.meta.data("ylim")
-  sector.name = get.cell.meta.data("sector.index")
-  circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5), cex = 0.6)
-  }, bg.border = NA)
-
-detach("package:circlize", unload=TRUE)
-detach("package:statnet", unload=TRUE)
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
-```
-
-```{r igraph, eval=FALSE}
-library(igraph)
-library(RColorBrewer)
-
-# Berechnung der Farbpaletten
-coul6 <- brewer.pal(6, "YlOrBr")
-coul7 <- brewer.pal(7, "YlOrBr")
-
-palette_fn1 <- as.numeric(degree(fn1)+1) # Farbpalette entsprechend vertex.size
-palette_fn1[which(palette_fn1 == 1)] <- 1
-palette_fn1[which(palette_fn1 %in% c(2:10))] <- 2
-palette_fn1[palette_fn1 %in% c(11:20)] <- 3
-palette_fn1[palette_fn1 %in% c(21:30)] <- 4
-palette_fn1[palette_fn1 %in% c(31:40)] <- 5
-palette_fn1[palette_fn1 %in% c(41:50)] <- 6
-palette_fn1[palette_fn1 > 50] <- 7
-farben_fn1 <- coul7[palette_fn1]
-
-palette_fn1_cut <- as.numeric(degree(fn1_cut)+1) # Farbpalette entsprechend vertex.size
-palette_fn1_cut[which(palette_fn1_cut == 1)] <- 1
-palette_fn1_cut[which(palette_fn1_cut %in% c(2:10))] <- 2
-palette_fn1_cut[palette_fn1_cut %in% c(11:20)] <- 3
-palette_fn1_cut[palette_fn1_cut %in% c(21:30)] <- 4
-palette_fn1_cut[palette_fn1_cut %in% c(31:40)] <- 5
-palette_fn1_cut[palette_fn1_cut %in% c(41:50)] <- 6
-palette_fn1_cut[palette_fn1_cut > 50] <- 7
-farben_fn1_cut <- coul7[palette_fn1_cut]
-
-palette_fn2 <- as.numeric(degree(fn2)+1) # Farbpalette entsprechend vertex.size
-farben_fn2 <- coul6[palette_fn2]
-farben_fn2[(length(degree(fn2))-10):length(degree(fn2))] <- "dark grey"
-
-palette_fn2_cut <- as.numeric(degree(fn2_cut)+1) # Farbpalette entsprechend vertex.size
-farben_fn2_cut <- coul6[palette_fn2_cut]
-farben_fn2_cut[(length(degree(fn2_cut))-10):length(degree(fn2_cut))] <- "dark grey"
-
-palette_fn2_cut_netzwerke <- as.numeric(degree(fn2_cut)+1)
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke == 1)] <- 1
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(2:5))] <- 2
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(6:10))] <- 3
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(11:15))] <- 4
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(16:20))] <- 5
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke > 20)] <- 6
-farben_fn2_cut_netzwerke <- coul6[palette_fn2_cut_netzwerke]
-farben_fn2_cut_netzwerke[1:(length(degree(fn2_cut))-ncol(Gdata_FN))] <- NA
-
-
-# Plotten
-lyout_fn2 <- layout.fruchterman.reingold(fn2)
-#write.table(lyout_fn2, file = "lyout_fn2.csv")
-#test <- as.matrix(sapply(read.table("lyout_fn2.csv"), as.numeric))#  as.matrix(read.table("lyout_fn2.csv"))
-lyout_fn2_cut <- layout.fruchterman.reingold(fn2_cut)
-#write.table(lyout_fn2_cut, file = "lyout_fn2_cut.csv")
-
-E(fn2)$color <- "grey"
-E(fn2_cut)$color <- "grey"
-
-## Forschungsatlas gesamt mit Netzwerken
-par(mfrow=c(1,1))
-plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
-     vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2)
-
-## Forschungsatlas cut mit Netzwerken
-V(fn2_cut)$color[V(fn2_cut)$type == TRUE] <- "dark grey" # Netzwerke
-V(fn2_cut)$color[V(fn2_cut)$type == FALSE] <- farben_fn1_cut[V(fn2_cut)$type == FALSE] # Institutionen
-par(mfrow=c(1,1))
-plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
-     vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Kombination
-par(mfrow=c(1,2))
-plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
-     vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2)
-plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
-     vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Forschungsnetzwerke Netzwerke
-fn2_cut_netzwerke <- fn2_cut
-V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == TRUE] <- farben_fn2_cut_netzwerke[V(fn2_cut_netzwerke)$type == TRUE] # Netzwerke
-V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == FALSE] <- "dark grey" # Institutionen
-V(fn2_cut_netzwerke)$label.cex[V(fn2_cut_netzwerke)$type == TRUE] <- 1.5 * 
-  V(fn2_cut_netzwerke)$betweenness[V(fn2_cut_netzwerke)$type == TRUE] / max(V(fn2_cut_netzwerke)$betweenness[V(fn2_cut_netzwerke)$type == TRUE])+ 0.5 # Netzwerke
-V(fn2_cut_netzwerke)$name[V(fn2_cut_netzwerke)$type == FALSE] <- NA # Institutionen
-par(mfrow=c(1,1))
-plot(fn2_cut_netzwerke, vertex.size = 3, vertex.color = V(fn2_cut_netzwerke)$color,
-     vertex.label = V(fn2_cut_netzwerke)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Forschungsnetzwerke Institutionen
-fn2_cut_institutionen <- fn2_cut
-V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == FALSE] <- farben_fn1_cut[V(fn2_cut_institutionen)$type == FALSE] # Institutionen
-V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == TRUE] <- "dark grey" # Netzwerke
-V(fn2_cut_institutionen)$label.cex[V(fn2_cut_institutionen)$type == FALSE] <- 1.5 * V(fn1_cut)$betweenness[V(fn2_cut_institutionen)$type == FALSE] / max(V(fn1_cut)$betweenness[V(fn2_cut_institutionen)$type == FALSE])+ 0.5 # Institutionen
-V(fn2_cut_institutionen)$name[V(fn2_cut_institutionen)$type == TRUE] <- NA # Netzwerke
-par(mfrow=c(1,1))
-plot(fn2_cut_institutionen, vertex.size = 3, vertex.color = V(fn2_cut_institutionen)$color,
-     vertex.label = V(fn2_cut_institutionen)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Kombination
-par(mfrow=c(1,2))
-plot(fn2_cut_netzwerke, vertex.size = 3, vertex.color = V(fn2_cut_netzwerke)$color,
-     vertex.label = V(fn2_cut_netzwerke)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-plot(fn2_cut_institutionen, vertex.size = 3, vertex.color = V(fn2_cut_institutionen)$color,
-     vertex.label = V(fn2_cut_institutionen)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
-```
-

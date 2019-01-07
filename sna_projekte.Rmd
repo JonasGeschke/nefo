@@ -142,355 +142,142 @@ create_links_forschungsnetzwerke_1mode <- function(Gdata){
 library(xlsx)
 ## Load raw data
 Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+Raw_projects_FB <- read.csv2("Daten/Suchergebnisse_FB_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 
-
-## Prepare dataset "FN"
-Gdata_FN <- Raw_forschungsnetzwerk
-names(Gdata_FN) <- c("inst", "abbr", "BeGenDiv", "BBIB", "BioFrankfurt", "BION", "iDiv", "Ecornet", "FVB", "GBIF-D", "GFBIO", "HIFMB", "KDM", "LVB")
-Gdata_FN <- Gdata_FN[,-9] #Delete FVB
-rownames(Gdata_FN) <- Gdata_FN[,2] #Inst oder abbr as rownames
-Gdata_FN <- Gdata_FN[,-c(1,2)] #Delete inst and abbr
-Gdata_FN <- Gdata_FN[,c(11,8,4,5,2,10,3,6,7,1,9)] #Order by number of members
-
-Gdata_FN$BeGenDiv <- as.numeric(Gdata_FN$BeGenDiv)
-Gdata_FN$BBIB <- as.numeric(Gdata_FN$BBIB)
-Gdata_FN$BioFrankfurt <- as.numeric(Gdata_FN$BioFrankfurt)
-Gdata_FN$BION <- as.numeric(Gdata_FN$BION)
-Gdata_FN$iDiv <- as.numeric(Gdata_FN$iDiv)
-Gdata_FN$Ecornet <- as.numeric(Gdata_FN$Ecornet)
-Gdata_FN$GFBIO <- as.numeric(Gdata_FN$GFBIO)
-Gdata_FN$HIFMB <- as.numeric(Gdata_FN$HIFMB)
-Gdata_FN$KDM <- as.numeric(Gdata_FN$KDM)
-Gdata_FN$LVB <- as.numeric(Gdata_FN$LVB)
-Gdata_FN$`GBIF-D` <- as.numeric(Gdata_FN$`GBIF-D`)
+projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
+projects <- projects[,-c(1,3,5,7,8,9,10,13,14,15,16)]
+projects$inst_id <- NA
+projects$proj_id <- NA
+projects <- projects[,c(1,2,10,11,16,7,14,15,3,4,5,6,13,9,8,12)]
 ```
 
-```{r Graph-objects, eval=FALSE}
+```{r "biodiv" subset, eval=FALSE}
+biodiv <- rbind(projects[grep("biodiv", projects$Thema),],
+                projects[grep("Biodiv", projects$Thema),],
+                projects[grep("biodiv", projects$Verbundprojekt),],
+                projects[grep("Biodiv", projects$Verbundprojekt),],
+                projects[grep("biodiv", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("Biodiv", projects$Klartext.Leistungsplansystematik),])
+biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
+biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+
+inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv))
+nrows <- c(1:nrow(inst_ids))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv[n,9] == inst_ids[s,1]){
+       biodiv[n,8] <- inst_ids[s,2]}
+    else{}
+}}
+rm(inst_ids, nrow, nrows, n, s)
+
+biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
+biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
+                      id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_verbund))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_verbund[n,7] == proj_id[s,1]){
+       biodiv_verbund[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+proj_id <- data.frame(unique = unique(biodiv_einzeln$Thema),
+                      id = as.character(
+                        paste("proj", 
+                              c((length(unique(biodiv_verbund$Verbundprojekt))+1):
+                                (length(unique(biodiv_einzeln$Thema))+length(unique(biodiv_verbund$Verbundprojekt)))
+                                 ), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_einzeln))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_einzeln[n,6] == proj_id[s,1]){
+       biodiv_einzeln[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
+rm(biodiv_einzeln, biodiv_verbund)
+
+biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+```
+
+
+# Netzwerkanalyse
+
+```{r Vorbereitung, eval=FALSE}
+inst <- data.frame(id = biodiv$inst_id,
+                   abbr = NA,
+                   name = biodiv$Zuwendungsempfänger,
+                   type = "Institution",
+                   ressort = NA,
+                   pt = NA,
+                   leistungsplansystematik = NA,
+                   budget = NA,
+                   stringsAsFactors = FALSE)
+proj <- data.frame(id = biodiv$proj_id,
+                   abbr = NA,
+                   name = biodiv$Thema,
+                   type = "Projekt",
+                   ressort = biodiv$Ressort,
+                   pt = biodiv$PT,
+                   leistungsplansystematik = biodiv$Klartext.Leistungsplansystematik,
+                   budget = biodiv$Fördersumme.in.EUR,
+                   stringsAsFactors = FALSE)
+nodes <- rbind(inst,proj)
+rm(inst, proj)
+nodes <- nodes[-which(duplicated(nodes$id)),]
+
+str(nodes)
+
+links <- biodiv
+links <- links[,c(8,5,9,10,6,7,1,2,3,4,11,12,13,14,15,16)]
+names(links)[c(1,2)] <- c("from", "to")
+
+library(igraph)
+ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
+```
+
+```{r Visualisierung, eval=FALSE}
 library(igraph)
 
-# 1-mode
-nodes_fn1 <- create_nodes_forschungsnetzwerke_1mode(Gdata_FN)
-links_fn1 <- create_links_forschungsnetzwerke_1mode(Gdata_FN)
-fn1 <- graph_from_data_frame(d = links_fn1, vertices = nodes_fn1, directed = F)
-fn1_cut <- delete.isolates(fn1)
+V(ntw)$degree <- degree(ntw)
+V(ntw)$betweenness <- betweenness(ntw, directed = F)
 
-# 2-mode
-fn2 <- graph.incidence(Gdata_FN)
-fn2_cut <- delete.isolates(fn2)
+V(ntw)$plotname <- NA
+V(ntw)$plotname[V(ntw)$type == "Institution"] <- nodes$id[nodes$type == "Institution"]
 
-# Berechnung statistischer Standardwerte
-V(fn1)$degree <- degree(fn1)
-V(fn1)$betweenness <- betweenness(fn1, directed = F)
-V(fn1_cut)$degree <- degree(fn1_cut)
-V(fn1_cut)$betweenness <- betweenness(fn1_cut, directed = F)
-V(fn2)$degree <- degree(fn2)
-V(fn2)$betweenness <- betweenness(fn2, directed = F)
-V(fn2_cut)$degree <- degree(fn2_cut)
-V(fn2_cut)$betweenness <- betweenness(fn2_cut, directed = F)
+coul <- RColorBrewer::brewer.pal(5, "YlOrBr")
+palette <- as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"])
+palette[which(palette == 1)] <- 1
+palette[which(palette %in% c(2:5))] <- 2
+palette[palette %in% c(6:10)] <- 3
+palette[palette %in% c(11:15)] <- 4
+palette[palette > 15] <- 5
+farben <- coul[palette]
 
-detach("package:igraph", unload=TRUE)
-```
+V(ntw)$vertex.size <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
+V(ntw)$vertex.col[V(ntw)$type == "Institution"] <- farben
+#V(ntw)$vertex.col[V(ntw)$ressort == "BMBF"] <- "dark grey"
+V(ntw)$vertex.col[V(ntw)$budget < 1000000] <- "light blue"
+V(ntw)$vertex.col[V(ntw)$budget >= 1000000] <- "cornflowerblue"
+V(ntw)$vertex.col[V(ntw)$budget >= 5000000] <- "dark blue"
 
-```{r SNA, eval=FALSE}
-library(igraph)
-
-forschungsnetzwerke_sna <- data.frame(name = append(colnames(Gdata_FN),rownames(Gdata_FN)))
-forschungsnetzwerke_sna$fullname <- NA
-forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),2] <- paste(Raw_forschungsnetzwerk$Name)
-forschungsnetzwerke_sna$type <- NA
-forschungsnetzwerke_sna[1:length(colnames(Gdata_FN)),3] <- "netzwerk"
-forschungsnetzwerke_sna[c((length(colnames(Gdata_FN))+1):nrow(forschungsnetzwerke_sna)),3] <- "institution"
-forschungsnetzwerke_sna$kategorie <- NA
-forschungsnetzwerke_sna$degree1 <- NA
-forschungsnetzwerke_sna$betweenness1 <- NA
-forschungsnetzwerke_sna$degree2 <- NA
-forschungsnetzwerke_sna$betweenness2 <- NA
-
-rows1 <- c((ncol(Gdata_FN)+1):nrow(forschungsnetzwerke_sna))
-rows2 <- c(1:ncol(Gdata_FN))
-forschungsnetzwerke_sna[rows1,5] <- degree(fn1)
-forschungsnetzwerke_sna[rows1,6] <- round(betweenness(fn1),digits=2)
-forschungsnetzwerke_sna[rows1,7] <- degree(fn2)[1:nrow(Gdata_FN)]
-forschungsnetzwerke_sna[rows2,7] <- degree(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]
-forschungsnetzwerke_sna[rows1,8] <- round((betweenness(fn2)[1:nrow(Gdata_FN)]),digits=2)
-forschungsnetzwerke_sna[rows2,8] <- round((betweenness(fn2)[(nrow(Gdata_FN)+1):nrow(forschungsnetzwerke_sna)]),digits=2)
-
-forschungsnetzwerke_sna$degree1rel <- NA
-forschungsnetzwerke_sna$degree2rel <- NA
-forschungsnetzwerke_sna$betweenness1rel <- NA
-forschungsnetzwerke_sna$betweenness2rel <- NA
-forschungsnetzwerke_sna[rows1,9] <- round(forschungsnetzwerke_sna[rows1,5] / max(forschungsnetzwerke_sna[rows1,5]),digits=2)
-forschungsnetzwerke_sna[,10] <- round(forschungsnetzwerke_sna[,7] / max(forschungsnetzwerke_sna[,7]),digits=2)
-forschungsnetzwerke_sna[rows1,11] <- round(forschungsnetzwerke_sna[rows1,6] / max(forschungsnetzwerke_sna[rows1,6]),digits=2)
-forschungsnetzwerke_sna[,12] <- round(forschungsnetzwerke_sna[,8] / max(forschungsnetzwerke_sna[,8]),digits=2)
-
-rm(rows1, rows2)
-xlsx::write.xlsx(forschungsnetzwerke_sna, file = "SNA_Statistik_Forschungsnetzwerke.xls")
-
-graph.density(fn1)
-graph.density(fn1_cut)
-
-detach("package:igraph", unload=TRUE)
-
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 0),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) == 5),])
-nrow(Gdata_FN[which(rowSums(Gdata_FN) > 5),])
-
-colSums(Gdata_FN)
-```
-
-
-# Visualisierung
-
-```{r Deskriptive Statistik, eval=FALSE}
-library(igraph)
-library(RColorBrewer)
-
-plotN <- data.frame(n = c(nrow(Gdata_FN[which(rowSums(Gdata_FN) == 0),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 1),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 2),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 3),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 4),]),
-                          nrow(Gdata_FN[which(rowSums(Gdata_FN) == 5),])))
-pie(plotN$n, col = brewer.pal(6, "YlOrBr"), labels = plotN$n, cex = 0.7)
-legend("right", legend = c("0", "1", "2", "3", "4", "5"), fill = brewer.pal(6, "YlOrBr"), bty = "n", cex = 1)
-
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
-```
-
-```{r Betweenness über Degree, eval=FALSE}
-# Analse der Forschungsnetzwerke
-regr_netzwerke <- data.frame(degree = forschungsnetzwerke_sna[c(1:11),7], betweenness = forschungsnetzwerke_sna[c(1:11),8])
-
-plot(regr_netzwerke$betweenness ~ regr_netzwerke$degree,
-     xlab = "Degree-Zentralität",
-     ylab = "Betweenness-Zentralität",
-     pch = 4)
-abline(glm(regr_netzwerke$betweenness ~ regr_netzwerke$degree), col = "blue")
-summary(glm(regr_netzwerke$betweenness ~ regr_netzwerke$degree))
-
-shapiro.test(regr_netzwerke$degree) # p>0,05 = normalverteilt # macht das Sinn?
-shapiro.test(regr_netzwerke$betweenness) # nicht normalverteilt => Korrelation nach Spearman
-cor.test(regr_netzwerke$degree,regr_netzwerke$betweenness,method="spearman")
-
-# Analyse der Institutionen
-regr_institutionen <- data.frame(degree = forschungsnetzwerke_sna[-c(1:11),5], betweenness = forschungsnetzwerke_sna[-c(1:11),6])
-
-plot(regr_institutionen$betweenness ~ regr_institutionen$degree,
-     xlab = "Degree-Zentralität",
-     ylab = "Betweenness-Zentralität",
-     pch = 4)
-abline(glm(regr_institutionen$betweenness ~ regr_institutionen$degree), col = "blue")
-summary(glm(regr_institutionen$betweenness ~ regr_institutionen$degree))
-
-shapiro.test(regr_institutionen$degree) # nicht normalverteilt
-shapiro.test(regr_institutionen$betweenness) # nicht normalverteilt => Korrelation nach Spearman
-cor.test(regr_institutionen$degree,regr_institutionen$betweenness,method="spearman")
-```
-
-```{r circlize, eval=FALSE}
-library(circlize)
-library(statnet)
-library(igraph)
-library(RColorBrewer)
-
-# Berechnung einer Farbpalette
-coul7 <- brewer.pal(7, "YlOrBr")
-palette_fn1 <- as.numeric(igraph::degree(fn1)+1) # Farbpalette entsprechend vertex.size
-palette_fn1[which(palette_fn1 == 1)] <- 1
-palette_fn1[which(palette_fn1 %in% c(2:10))] <- 2
-palette_fn1[palette_fn1 %in% c(11:20)] <- 3
-palette_fn1[palette_fn1 %in% c(21:30)] <- 4
-palette_fn1[palette_fn1 %in% c(31:40)] <- 5
-palette_fn1[palette_fn1 %in% c(41:50)] <- 6
-palette_fn1[palette_fn1 > 50] <- 7
-farben_fn1 <- coul7[palette_fn1]
-
-
-# Preparation von Zirkel-Links
-links_chord <- links_fn1
-colno <- c(1,2)
-rowno <- c(1:nrow(links_chord))
-for (c in colno){
-  for (r in rowno){
-    links_chord[r,c] <- nodes_fn1$name[which(nodes_fn1[,1] %in% links_chord[r,c])]
-  }
-}
-rm(colno, rowno, c, r)
-links_chord <- links_chord[order(links_chord$network_no, links_chord$from, links_chord$to),]
-links_chord$value <- c(1:nrow(links_chord))
-institutions <- nodes_fn1$name
-farben10 <- c("greenyellow", "green", "forestgreen", "darkseagreen", "cornflowerblue", "lightslateblue", "navy", "red", "deeppink2", "chocolate4", "black")
-coul10 <- c()
-rowno <- c(1:nrow(links_chord))
-for (r in rowno){
-  coul10 <- append(coul10, farben10[links_chord[r,3]])
-}
-rm(rowno, r)
-names(links_chord) <- c("from", "to", "width", "network", "value")
-links_chord$width <- 1
-
-# Preparation der Reihenfolge des plottens
-order_chord <- data.frame(betweenness = round(igraph::betweenness(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F))), degree = igraph::degree(igraph::graph_from_data_frame(d = links_chord, vertices = data.frame(name = institutions), directed = F)), actor_abbr = nodes_fn1$name, gridcol = farben_fn1)
-order_chord <- order_chord[order(order_chord$degree),]
-gridcol <- as.vector(order_chord$gridcol)
-names(gridcol) <- order_chord$actor_abbr
-
-# Plot
-par(mfrow=c(1,1))
-chordDiagram(links_chord,
-             order = order_chord$actor_abbr,
-             annotationTrack = "grid", preAllocateTracks = 1,
-             grid.col = gridcol,
-             col = coul10,
-             link.sort = "overall")#, ink.decreasing = FALSE)
-circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
-  xlim = get.cell.meta.data("xlim")
-  ylim = get.cell.meta.data("ylim")
-  sector.name = get.cell.meta.data("sector.index")
-  circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5), cex = 0.6)
-  }, bg.border = NA)
-
-detach("package:circlize", unload=TRUE)
-detach("package:statnet", unload=TRUE)
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
-```
-
-```{r igraph, eval=FALSE}
-library(igraph)
-library(RColorBrewer)
-
-# Berechnung der Farbpaletten
-coul6 <- brewer.pal(6, "YlOrBr")
-coul7 <- brewer.pal(7, "YlOrBr")
-
-palette_fn1 <- as.numeric(degree(fn1)+1) # Farbpalette entsprechend vertex.size
-palette_fn1[which(palette_fn1 == 1)] <- 1
-palette_fn1[which(palette_fn1 %in% c(2:10))] <- 2
-palette_fn1[palette_fn1 %in% c(11:20)] <- 3
-palette_fn1[palette_fn1 %in% c(21:30)] <- 4
-palette_fn1[palette_fn1 %in% c(31:40)] <- 5
-palette_fn1[palette_fn1 %in% c(41:50)] <- 6
-palette_fn1[palette_fn1 > 50] <- 7
-farben_fn1 <- coul7[palette_fn1]
-
-palette_fn1_cut <- as.numeric(degree(fn1_cut)+1) # Farbpalette entsprechend vertex.size
-palette_fn1_cut[which(palette_fn1_cut == 1)] <- 1
-palette_fn1_cut[which(palette_fn1_cut %in% c(2:10))] <- 2
-palette_fn1_cut[palette_fn1_cut %in% c(11:20)] <- 3
-palette_fn1_cut[palette_fn1_cut %in% c(21:30)] <- 4
-palette_fn1_cut[palette_fn1_cut %in% c(31:40)] <- 5
-palette_fn1_cut[palette_fn1_cut %in% c(41:50)] <- 6
-palette_fn1_cut[palette_fn1_cut > 50] <- 7
-farben_fn1_cut <- coul7[palette_fn1_cut]
-
-palette_fn2 <- as.numeric(degree(fn2)+1) # Farbpalette entsprechend vertex.size
-farben_fn2 <- coul6[palette_fn2]
-farben_fn2[(length(degree(fn2))-10):length(degree(fn2))] <- "dark grey"
-
-palette_fn2_cut <- as.numeric(degree(fn2_cut)+1) # Farbpalette entsprechend vertex.size
-farben_fn2_cut <- coul6[palette_fn2_cut]
-farben_fn2_cut[(length(degree(fn2_cut))-10):length(degree(fn2_cut))] <- "dark grey"
-
-palette_fn2_cut_netzwerke <- as.numeric(degree(fn2_cut)+1)
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke == 1)] <- 1
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(2:5))] <- 2
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(6:10))] <- 3
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(11:15))] <- 4
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke %in% c(16:20))] <- 5
-palette_fn2_cut_netzwerke[which(palette_fn2_cut_netzwerke > 20)] <- 6
-farben_fn2_cut_netzwerke <- coul6[palette_fn2_cut_netzwerke]
-farben_fn2_cut_netzwerke[1:(length(degree(fn2_cut))-ncol(Gdata_FN))] <- NA
-
-
-# Plotten
-lyout_fn2 <- layout.fruchterman.reingold(fn2)
-#write.table(lyout_fn2, file = "lyout_fn2.csv")
-#test <- as.matrix(sapply(read.table("lyout_fn2.csv"), as.numeric))#  as.matrix(read.table("lyout_fn2.csv"))
-lyout_fn2_cut <- layout.fruchterman.reingold(fn2_cut)
-#write.table(lyout_fn2_cut, file = "lyout_fn2_cut.csv")
-
-E(fn2)$color <- "grey"
-E(fn2_cut)$color <- "grey"
-
-## Forschungsatlas gesamt mit Netzwerken
-par(mfrow=c(1,1))
-plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
-     vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
+lyout <- layout.fruchterman.reingold(ntw)
+plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
+     vertex.label = V(ntw)$plotname, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
      vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2)
-
-## Forschungsatlas cut mit Netzwerken
-V(fn2_cut)$color[V(fn2_cut)$type == TRUE] <- "dark grey" # Netzwerke
-V(fn2_cut)$color[V(fn2_cut)$type == FALSE] <- farben_fn1_cut[V(fn2_cut)$type == FALSE] # Institutionen
-par(mfrow=c(1,1))
-plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
-     vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Kombination
-par(mfrow=c(1,2))
-plot(fn2, vertex.size = 3, vertex.color = farben_fn2,
-     vertex.label = V(fn2)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2)
-plot(fn2_cut, vertex.size = 3, vertex.color = V(fn2_cut)$color,
-     vertex.label = V(fn2_cut)$name, vertex.label.family = "Calibri", vertex.label.cex = 0.8,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Forschungsnetzwerke Netzwerke
-fn2_cut_netzwerke <- fn2_cut
-V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == TRUE] <- farben_fn2_cut_netzwerke[V(fn2_cut_netzwerke)$type == TRUE] # Netzwerke
-V(fn2_cut_netzwerke)$color[V(fn2_cut_netzwerke)$type == FALSE] <- "dark grey" # Institutionen
-V(fn2_cut_netzwerke)$label.cex[V(fn2_cut_netzwerke)$type == TRUE] <- 1.5 * 
-  V(fn2_cut_netzwerke)$betweenness[V(fn2_cut_netzwerke)$type == TRUE] / max(V(fn2_cut_netzwerke)$betweenness[V(fn2_cut_netzwerke)$type == TRUE])+ 0.5 # Netzwerke
-V(fn2_cut_netzwerke)$name[V(fn2_cut_netzwerke)$type == FALSE] <- NA # Institutionen
-par(mfrow=c(1,1))
-plot(fn2_cut_netzwerke, vertex.size = 3, vertex.color = V(fn2_cut_netzwerke)$color,
-     vertex.label = V(fn2_cut_netzwerke)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Forschungsnetzwerke Institutionen
-fn2_cut_institutionen <- fn2_cut
-V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == FALSE] <- farben_fn1_cut[V(fn2_cut_institutionen)$type == FALSE] # Institutionen
-V(fn2_cut_institutionen)$color[V(fn2_cut_institutionen)$type == TRUE] <- "dark grey" # Netzwerke
-V(fn2_cut_institutionen)$label.cex[V(fn2_cut_institutionen)$type == FALSE] <- 1.5 * V(fn1_cut)$betweenness[V(fn2_cut_institutionen)$type == FALSE] / max(V(fn1_cut)$betweenness[V(fn2_cut_institutionen)$type == FALSE])+ 0.5 # Institutionen
-V(fn2_cut_institutionen)$name[V(fn2_cut_institutionen)$type == TRUE] <- NA # Netzwerke
-par(mfrow=c(1,1))
-plot(fn2_cut_institutionen, vertex.size = 3, vertex.color = V(fn2_cut_institutionen)$color,
-     vertex.label = V(fn2_cut_institutionen)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-## Kombination
-par(mfrow=c(1,2))
-plot(fn2_cut_netzwerke, vertex.size = 3, vertex.color = V(fn2_cut_netzwerke)$color,
-     vertex.label = V(fn2_cut_netzwerke)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-plot(fn2_cut_institutionen, vertex.size = 3, vertex.color = V(fn2_cut_institutionen)$color,
-     vertex.label = V(fn2_cut_institutionen)$name, vertex.label.family = "Calibri",
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0,
-     layout = lyout_fn2_cut)
-
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
+     edge.arrow.size = 0, edge.color = "light grey",
+     layout = lyout)
 ```
 
