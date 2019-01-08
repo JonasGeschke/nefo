@@ -266,7 +266,7 @@ palette[palette %in% c(11:15)] <- 4
 palette[palette > 15] <- 5
 farben <- coul[palette]
 
-V(ntw)$vertex.size <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
+V(ntw)$plotname.cex <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
 V(ntw)$vertex.col[V(ntw)$type == "Institution"] <- farben
 #V(ntw)$vertex.col[V(ntw)$ressort == "BMBF"] <- "dark grey"
 V(ntw)$vertex.col[V(ntw)$budget < 1000000] <- "light blue"

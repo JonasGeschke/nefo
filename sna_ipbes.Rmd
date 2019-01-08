@@ -146,7 +146,9 @@ create_links_forschungsnetzwerke_1mode <- function(Gdata){
 ## Load raw data
 Raw_authors <- xlsx::read.xlsx(file = "IPBES_authors.xlsx", sheetIndex = 1, encoding="UTF-8")
 Raw_authors$CC <- as.factor(countrycode::countrycode(Raw_authors$Country, origin = "country.name", destination = "genc2c"))
+```
 
+```{r Raw zu authors, eval=FALSE}
 authors <- Raw_authors
 authors$Name <- as.character(authors$Name)
 str(authors)
@@ -225,7 +227,7 @@ ECA_num <- subset(ECA_num, Freq != 0)
 
 countries_ECA <- joinCountryData2Map(ECA_num, joinCode = "ISO2", nameJoinColumn = "Var1")
 cols <- RColorBrewer::brewer.pal(4, "YlGn")
-mapCountryData(countries_ECA, mapRegion = "eurasia",
+mapCountryData(countries_ECA, mapRegion = "world",
                nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
                colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
                addLegend = T, mapTitle = "Where IPBES authors are from \n - ECA assessment -")
@@ -293,25 +295,76 @@ nodes <- nodes[order(nodes$Name, nodes$CC),]
 nodes <- nodes[,c(3,1,2)]
 names(nodes) <- c("aut_id", "name", "country")
 
-links <- data.frame(from = NA, to = NA, assessment = NA, chapter = NA)
-assessment <- as.vector(unique(authors$subset))
+authors_level <- authors[,-c(1:5,7,9)]
+authors_level_num <- c(1:nrow(authors_level))
+nodes_num <- c(1:nrow(nodes))
+nodes$level <- NA
+for(n in nodes_num){
+  subset_authors_level <- subset(authors_level, authors_level$aut_id %in% nodes[n,1])
+  if(nrow(subset_authors_level) == 1){
+    nodes[n,4] <- as.character(subset_authors_level[1,1])
+    } else if("Cha" %in% subset_authors_level$Level){
+      nodes[n,4] <- "Cha"
+    } else if("CLA" %in% subset_authors_level$Level){
+      nodes[n,4] <- "CLA"
+    } else if("LAu" %in% subset_authors_level$Level){
+      nodes[n,4] <- "LAu"
+      } else if("CAu" %in% subset_authors_level$Level){
+        nodes[n,4] <- "CAu"
+        } else if("Fel" %in% subset_authors_level$Level){
+          nodes[n,4] <- "Fel"
+        } else {
+            nodes[n,4] <- "Rev"
+        }
+}
+rm(authors_level, authors_level_num, nodes_num, n, subset_authors_level)
+
+links <- data.frame(from = NA, to = NA, assessment = NA, chapter = NA, level = NA)
+assessmentchapter <- as.vector(unique(authors$subset))
+assessmentchapter_num <- c(1:length(assessmentchapter))
+assessment <- as.vector(unique(authors$Assessment))
 assessment_num <- c(1:length(assessment))
 
-for(n in assessment_num){
-  subset <- subset(authors, authors$subset %in% assessment[n])
-  rowssubset <- c(1:nrow(subset))
+for(n in assessmentchapter_num){
+  subset_assessmentchapter <- subset(authors, authors$subset %in% assessmentchapter[n])
+  rowssubset <- c(1:nrow(subset_assessmentchapter))
   for (r in rowssubset){
     t <- 1
     repeat{
       links <- rbind(links,
-                     c(subset[r,8], subset[r+t,8], as.character(subset[r,1]), subset[r,2]),
+                     c(subset_assessmentchapter[r,8], 
+                       subset_assessmentchapter[r+t,8], 
+                       as.character(subset_assessmentchapter[r,1]), 
+                       subset_assessmentchapter[r,2],
+                       as.character(subset_assessmentchapter[r,6])),
                      stringsAsFactors = FALSE)
       t <- t+1
-      if (t==max(rowssubset)){break}}
+      if (t == max(rowssubset)){break}}
+  }
+}
+for(m in assessment_num){
+  subset_assessment <- subset(authors, authors$Assessment %in% assessment[m])
+  subset_assessment_chair <- subset(subset_assessment, subset_assessment$Chapter == 0)
+  subset_assessment_authors <- subset(subset_assessment, subset_assessment$Chapter != 0)
+  rowssubset_chair <- c(1:nrow(subset_assessment_chair))
+  for (r in rowssubset_chair){
+    rowssubset_authors <- c(1:nrow(subset_assessment_authors))
+    for (t in rowssubset_authors){
+      links <- rbind(links,
+                     c(subset_assessment_chair[r,8], 
+                       subset_assessment_authors[t,8], 
+                       as.character(subset_assessment_chair[r,1]),
+                       subset_assessment_chair[r,2],
+                       as.character(subset_assessmentchapter[r,6])),
+                     stringsAsFactors = FALSE)
+      }
   }
 }
 links <- subset(links, !is.na(links$to))
-rm(assessment, assessment_num, n, r, t, rowssubset)
+links <- links[-which(duplicated(links)),]
+rm(assessment, assessment_num, assessmentchapter, assessmentchapter_num,
+   m, n, r, t, rowssubset, rowssubset_chair, rowssubset_authors,
+   subset_assessment, subset_assessmentchapter, subset_assessment_chair, subset_assessment_authors)
 
 library(igraph)
 ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
@@ -320,6 +373,15 @@ V(ntw)$degree <- degree(ntw)
 V(ntw)$betweenness <- betweenness(ntw, directed = F)
 
 V(ntw)$vertex.size <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
+V(ntw)$vertex.frame.color[V(ntw)$level == "Cha"] <- "black"
+V(ntw)$vertex.frame.color[V(ntw)$level == "CLA"] <- "dark grey"
+V(ntw)$vertex.frame.color[V(ntw)$level == "LAu"] <- "light grey"
+#E(ntw)$lty[E(ntw)$level == "Cha"] <- 1
+#E(ntw)$lty[E(ntw)$level == "CLA"] <- 5
+#E(ntw)$lty[E(ntw)$level == "LAu"] <- 6
+#E(ntw)$lty[E(ntw)$level == "CAu"] <- 4
+#E(ntw)$lty[E(ntw)$level == "Fel"] <- 2
+#E(ntw)$lty[E(ntw)$level == "Rev"] <- 3
 
 betwennesscol <- RColorBrewer::brewer.pal(9, "YlOrRd")
 V(ntw)$vertex.col[V(ntw)$vertex.size == 2] <- "light grey" # betwennesscol[3]
@@ -338,15 +400,147 @@ E(ntw)$edge.col[E(ntw)$assessment == "Asi"] <- assessmentcol[5]
 E(ntw)$edge.col[E(ntw)$assessment == "Ame"] <- assessmentcol[6]
 E(ntw)$edge.col[E(ntw)$assessment == "ECA"] <- assessmentcol[7]
 
-lyout <- layout.fruchterman.reingold(ntw) #layout.auto(ntw)
+lyout <- layout.fruchterman.reingold(ntw)
 plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
      vertex.label = NA, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
-     vertex.frame.color = NA, vertex.label.color = "black",
+     vertex.frame.color = V(ntw)$vertex.frame.color, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ntw)$edge.col,
      layout = lyout)
-legend(0.5,0.5, legend = c("Pol", "Sce", "LDR", "Afr", "Asi", "Ame", "ECA"), fill=assessmentcol)
+legend(-1.6,1.2, legend = c("Pol", "Sce", "LDR", "Afr", "Asi", "Ame", "ECA"), fill = assessmentcol)
+
+authors_sna_all <- cbind(nodes,
+                     degree = V(ntw)$degree,
+                     betweenness = V(ntw)$betweenness)
+```
+
+```{r Chairs, CLAs und Lead authors, eval=FALSE}
+authors <- authors[order(authors$Assessment, authors$Chapter, authors$Level, authors$CC, authors$Name),]
+authors$subset <- apply(authors[,c(1,2)], 1, paste, collapse = " _ ")
+authors <- subset(authors, authors$Level %in% c("Cha", "CLA", "LAu"))
+
+nodes <- authors
+nodes <- nodes[,-c(1,2,4,6,7,9)]
+nodes <- unique(nodes)
+nodes <- nodes[order(nodes$Name, nodes$CC),]
+nodes <- nodes[,c(3,1,2)]
+names(nodes) <- c("aut_id", "name", "country")
+
+authors_level <- authors[,-c(1:5,7,9)]
+authors_level_num <- c(1:nrow(authors_level))
+nodes_num <- c(1:nrow(nodes))
+nodes$level <- NA
+for(n in nodes_num){
+  subset_authors_level <- subset(authors_level, authors_level$aut_id %in% nodes[n,1])
+  if(nrow(subset_authors_level) == 1){
+    nodes[n,4] <- as.character(subset_authors_level[1,1])
+    } else if("Cha" %in% subset_authors_level$Level){
+      nodes[n,4] <- "Cha"
+    } else if("CLA" %in% subset_authors_level$Level){
+      nodes[n,4] <- "CLA"
+    } else if("LAu" %in% subset_authors_level$Level){
+      nodes[n,4] <- "LAu"
+      } else if("CAu" %in% subset_authors_level$Level){
+        nodes[n,4] <- "CAu"
+        } else if("Fel" %in% subset_authors_level$Level){
+          nodes[n,4] <- "Fel"
+        } else {
+            nodes[n,4] <- "Rev"
+        }
+}
+rm(authors_level, authors_level_num, nodes_num, n, subset_authors_level)
+
+links <- data.frame(from = NA, to = NA, assessment = NA, chapter = NA, level = NA)
+assessmentchapter <- as.vector(unique(authors$subset))
+assessmentchapter_num <- c(1:length(assessmentchapter))
+assessment <- as.vector(unique(authors$Assessment))
+assessment_num <- c(1:length(assessment))
+
+for(n in assessmentchapter_num){
+  subset_assessmentchapter <- subset(authors, authors$subset %in% assessmentchapter[n])
+  rowssubset <- c(1:nrow(subset_assessmentchapter))
+  for (r in rowssubset){
+    t <- 1
+    repeat{
+      links <- rbind(links,
+                     c(subset_assessmentchapter[r,8], 
+                       subset_assessmentchapter[r+t,8], 
+                       as.character(subset_assessmentchapter[r,1]), 
+                       subset_assessmentchapter[r,2],
+                       as.character(subset_assessmentchapter[r,6])),
+                     stringsAsFactors = FALSE)
+      t <- t+1
+      if (t == max(rowssubset)){break}}
+  }
+}
+for(m in assessment_num){
+  subset_assessment <- subset(authors, authors$Assessment %in% assessment[m])
+  subset_assessment_chair <- subset(subset_assessment, subset_assessment$Chapter == 0)
+  subset_assessment_authors <- subset(subset_assessment, subset_assessment$Chapter != 0)
+  rowssubset_chair <- c(1:nrow(subset_assessment_chair))
+  for (r in rowssubset_chair){
+    rowssubset_authors <- c(1:nrow(subset_assessment_authors))
+    for (t in rowssubset_authors){
+      links <- rbind(links,
+                     c(subset_assessment_chair[r,8], 
+                       subset_assessment_authors[t,8], 
+                       as.character(subset_assessment_chair[r,1]),
+                       subset_assessment_chair[r,2],
+                       as.character(subset_assessmentchapter[r,6])),
+                     stringsAsFactors = FALSE)
+      }
+  }
+}
+links <- subset(links, !is.na(links$to))
+links <- links[-which(duplicated(links)),]
+rm(assessment, assessment_num, assessmentchapter, assessmentchapter_num,
+   m, n, r, t, rowssubset, rowssubset_chair, rowssubset_authors,
+   subset_assessment, subset_assessmentchapter, subset_assessment_chair, subset_assessment_authors)
+
+library(igraph)
+ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
+simplify(ntw) ### CHECK ON THIS
+
+V(ntw)$degree <- degree(ntw)
+V(ntw)$betweenness <- betweenness(ntw, directed = F)
+
+V(ntw)$vertex.size <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
+V(ntw)$vertex.frame.color[V(ntw)$level == "Cha"] <- "black"
+V(ntw)$vertex.frame.color[V(ntw)$level == "CLA"] <- "dark grey"
+V(ntw)$vertex.frame.color[V(ntw)$level == "LAu"] <- "light grey"
+#E(ntw)$lty[E(ntw)$level == "Cha"] <- 1
+#E(ntw)$lty[E(ntw)$level == "CLA"] <- 5
+#E(ntw)$lty[E(ntw)$level == "LAu"] <- 6
+#E(ntw)$lty[E(ntw)$level == "CAu"] <- 4
+#E(ntw)$lty[E(ntw)$level == "Fel"] <- 2
+#E(ntw)$lty[E(ntw)$level == "Rev"] <- 3
+
+betwennesscol <- RColorBrewer::brewer.pal(9, "YlOrRd")
+V(ntw)$vertex.col[V(ntw)$vertex.size == 2] <- "light grey" # betwennesscol[3]
+V(ntw)$vertex.col[V(ntw)$vertex.size > 2] <- betwennesscol[4] # 147 - 121
+V(ntw)$vertex.col[V(ntw)$vertex.size > 3] <- betwennesscol[5] # 26 - 18
+V(ntw)$vertex.col[V(ntw)$vertex.size > 4] <- betwennesscol[6] # 8 - 4
+V(ntw)$vertex.col[V(ntw)$vertex.size > 5] <- betwennesscol[7] # 4 - 3
+V(ntw)$vertex.col[V(ntw)$vertex.size > 6] <- betwennesscol[8] # 1
+
+assessmentcol <- c("#39ca00","#1e1272","#a4d721","#008cf4","#2be199","#ff60b3","#01d2f8") #RColorBrewer::brewer.pal(7, "Set2")
+E(ntw)$edge.col[E(ntw)$assessment == "Pol"] <- assessmentcol[1]
+E(ntw)$edge.col[E(ntw)$assessment == "Sce"] <- assessmentcol[2]
+E(ntw)$edge.col[E(ntw)$assessment == "LDR"] <- assessmentcol[3]
+E(ntw)$edge.col[E(ntw)$assessment == "Afr"] <- assessmentcol[4]
+E(ntw)$edge.col[E(ntw)$assessment == "Asi"] <- assessmentcol[5]
+E(ntw)$edge.col[E(ntw)$assessment == "Ame"] <- assessmentcol[6]
+E(ntw)$edge.col[E(ntw)$assessment == "ECA"] <- assessmentcol[7]
+
+lyout <- layout.fruchterman.reingold(ntw)
+plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
+     vertex.label = NA, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
+     vertex.frame.color = V(ntw)$vertex.frame.color, vertex.label.color = "black",
+     edge.arrow.size = 0, edge.color = E(ntw)$edge.col,
+     layout = lyout)
+legend(-1.6,1.2, legend = c("Pol", "Sce", "LDR", "Afr", "Asi", "Ame", "ECA"), fill = assessmentcol)
 
 authors_sna <- cbind(nodes,
                      degree = V(ntw)$degree,
                      betweenness = V(ntw)$betweenness)
 ```
+
