@@ -61,78 +61,10 @@ if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
 ```
 
-```{r set additional functions #####EDIT#####, eval=FALSE}
+```{r set additional functions, eval=FALSE}
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
-
-delete.isolates <- function(graph, mode = "all"){
-  isolates <- which(degree(graph, mode = mode) == 0)
-  delete.vertices(graph, isolates)
-}
-
-create_nodes_forschungsnetzwerke_1mode <- function(Gdata){
-    w1 <- colnames(Gdata)
-    w2 <- rownames(Gdata)
-    w3 <- c(paste("net", c(1:ncol(Gdata)), sep = ""))
-    w4 <- c(paste("inst", c(1:nrow(Gdata)), sep = ""))
-    
-    nodes <- as.data.frame(cbind(w4, w2))
-    names(nodes) <- c("id", "name")
-    nodes$id <- as.character(nodes$id)
-    nodes$name <- as.character(nodes$name)
-    
-    return(nodes)
-}
-
-create_links_forschungsnetzwerke_1mode <- function(Gdata){
-    w1 <- colnames(Gdata)
-    w2 <- rownames(Gdata)
-    w3 <- c(paste("net", c(1:ncol(Gdata)), sep = ""))
-    w4 <- c(paste("inst", c(1:nrow(Gdata)), sep = ""))
-      
-    columns_Gdata <- c(1:ncol(Gdata))
-    rows_Gdata <- c(1:nrow(Gdata))
-    
-    links_w <- data.frame(from=character(), to=character(), 
-                          network_no=character(), network=character(),
-                          stringsAsFactors = FALSE)
-     for (c in columns_Gdata){
-      for (r in rows_Gdata){
-        if (as.numeric(Gdata[r,c]) == 1) {
-          links_w <- rbind(links_w,
-                           c(w3[c], w4[r], as.numeric(c), colnames(Gdata)[c]), 
-                           stringsAsFactors = FALSE)
-        } else {}
-      }
-    }
-    
-    colnames(links_w) <- c("links_w_1", "links_w_2", "links_w_3", "links_w_4")
-    
-    links <- data.frame(from=character(), to=character(), 
-                        network_no=character(), network=character(),
-                        stringsAsFactors = FALSE)
-    
-    for(n in columns_Gdata){
-      subset <- subset(links_w, links_w$links_w_4 == w1[n])
-      rowssubset <- c(1:nrow(subset))
-      for (r in rowssubset){
-        t <- 1
-        repeat{
-          links <- rbind(links,
-                         c(subset[r,2], subset[r+t,2], n, paste(w1[n])),
-                         stringsAsFactors = FALSE)
-          t <- t+1
-          if (t==max(rowssubset)){break}}
-      }
-    }
-    
-    colnames(links) <- c("from", "to", "network_no", "network")
-    links$network_no <- as.numeric(links$network_no)
-    links <- subset(links, !is.na(links$to))
-    
-    return(links)
-}
 ```
 
 
@@ -141,12 +73,16 @@ create_links_forschungsnetzwerke_1mode <- function(Gdata){
 ```{r Laden der Rohdaten und Vorbereitung der Daten, eval=FALSE}
 library(xlsx)
 ## Load raw data
-Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
-Raw_projects_FB <- read.csv2("Daten/Suchergebnisse_FB_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
-Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
-Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+#Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+#Raw_projects_FB <- read.csv2("Daten/Suchergebnisse_FB_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+#Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+#Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 
-projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
+Raw_projects_gesamt <- read.csv2("Daten/Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F) # Abgerufen am 9.1.19
+
+#projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
+projects <- Raw_projects_gesamt
+
 projects <- projects[,-c(1,3,5,7,8,9,10,13,14,15,16)]
 projects$inst_id <- NA
 projects$proj_id <- NA
@@ -209,9 +145,206 @@ rm(proj_id, nrow, nrows, n, s)
 biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
 rm(biodiv_einzeln, biodiv_verbund)
 
-biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+```
+```{r "biodiv" + "ökosystem" subset, eval=FALSE}
+biodiv <- rbind(projects[grep("biodiv", projects$Thema),],
+                projects[grep("Biodiv", projects$Thema),],
+                projects[grep("biodiv", projects$Verbundprojekt),],
+                projects[grep("Biodiv", projects$Verbundprojekt),],
+                projects[grep("biodiv", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("Biodiv", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("ökosystem", projects$Thema),],
+                projects[grep("Ökosystem", projects$Thema),],
+                projects[grep("ökosystem", projects$Verbundprojekt),],
+                projects[grep("Ökosystem", projects$Verbundprojekt),],
+                projects[grep("ökosystem", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("Ökosystem", projects$Klartext.Leistungsplansystematik),])
+biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
+biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+
+inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv))
+nrows <- c(1:nrow(inst_ids))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv[n,9] == inst_ids[s,1]){
+       biodiv[n,8] <- inst_ids[s,2]}
+    else{}
+}}
+rm(inst_ids, nrow, nrows, n, s)
+
+biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
+biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
+                      id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_verbund))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_verbund[n,7] == proj_id[s,1]){
+       biodiv_verbund[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+proj_id <- data.frame(unique = unique(biodiv_einzeln$Thema),
+                      id = as.character(
+                        paste("proj", 
+                              c((length(unique(biodiv_verbund$Verbundprojekt))+1):
+                                (length(unique(biodiv_einzeln$Thema))+length(unique(biodiv_verbund$Verbundprojekt)))
+                                 ), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_einzeln))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_einzeln[n,6] == proj_id[s,1]){
+       biodiv_einzeln[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
+rm(biodiv_einzeln, biodiv_verbund)
+
+#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+```
+```{r "ökosystem" subset, eval=FALSE}
+biodiv <- rbind(projects[grep("ökosystem", projects$Thema),],
+                projects[grep("Ökosystem", projects$Thema),],
+                projects[grep("ökosystem", projects$Verbundprojekt),],
+                projects[grep("Ökosystem", projects$Verbundprojekt),],
+                projects[grep("ökosystem", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("Ökosystem", projects$Klartext.Leistungsplansystematik),])
+biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
+biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+
+inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv))
+nrows <- c(1:nrow(inst_ids))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv[n,9] == inst_ids[s,1]){
+       biodiv[n,8] <- inst_ids[s,2]}
+    else{}
+}}
+rm(inst_ids, nrow, nrows, n, s)
+
+biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
+biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
+                      id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_verbund))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_verbund[n,7] == proj_id[s,1]){
+       biodiv_verbund[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+proj_id <- data.frame(unique = unique(biodiv_einzeln$Thema),
+                      id = as.character(
+                        paste("proj", 
+                              c((length(unique(biodiv_verbund$Verbundprojekt))+1):
+                                (length(unique(biodiv_einzeln$Thema))+length(unique(biodiv_verbund$Verbundprojekt)))
+                                 ), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_einzeln))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_einzeln[n,6] == proj_id[s,1]){
+       biodiv_einzeln[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
+rm(biodiv_einzeln, biodiv_verbund)
+
+#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
 ```
 
+```{r "biodiv"-inst subset, eval=FALSE}
+biodiv <- rbind(projects[grep("biodiv", projects$Thema),],
+                projects[grep("Biodiv", projects$Thema),],
+                projects[grep("biodiv", projects$Verbundprojekt),],
+                projects[grep("Biodiv", projects$Verbundprojekt),],
+                projects[grep("biodiv", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("Biodiv", projects$Klartext.Leistungsplansystematik),])
+biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
+biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+
+inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv))
+nrows <- c(1:nrow(inst_ids))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv[n,9] == inst_ids[s,1]){
+       biodiv[n,8] <- inst_ids[s,2]}
+    else{}
+}}
+rm(nrow, nrows, n, s)
+
+Gdata <- projects[grep(inst_ids[1,1], projects$Zuwendungsempfänger),]
+inst_ids_num <- c(2:nrow(inst_ids))
+for(i in inst_ids_num){
+  Gdata <- rbind(Gdata, projects[grep(inst_ids[i,1], projects$Zuwendungsempfänger),])
+}
+rm(inst_ids_num, i)
+
+nrow <- c(1:nrow(Gdata))
+nrows <- c(1:nrow(inst_ids))
+for(n in nrow){
+  for (s in nrows){
+    if(Gdata[n,9] == inst_ids[s,1]){
+       Gdata[n,8] <- inst_ids[s,2]}
+    else{}
+}}
+rm(nrow, nrows, n, s)
+
+biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
+biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
+                      id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_verbund))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_verbund[n,7] == proj_id[s,1]){
+       biodiv_verbund[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+proj_id <- data.frame(unique = unique(biodiv_einzeln$Thema),
+                      id = as.character(
+                        paste("proj", 
+                              c((length(unique(biodiv_verbund$Verbundprojekt))+1):
+                                (length(unique(biodiv_einzeln$Thema))+length(unique(biodiv_verbund$Verbundprojekt)))
+                                 ), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_einzeln))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_einzeln[n,6] == proj_id[s,1]){
+       biodiv_einzeln[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
+rm(biodiv_einzeln, biodiv_verbund)
+
+#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+```
 
 # Netzwerkanalyse
 
@@ -256,7 +389,12 @@ V(ntw)$betweenness <- betweenness(ntw, directed = F)
 
 V(ntw)$plotname <- NA
 V(ntw)$plotname[V(ntw)$type == "Institution"] <- nodes$id[nodes$type == "Institution"]
-
+V(ntw)$plotname[grep("Museum für Naturkunde Leibniz-Institut", V(ntw)$name)] <- "MfN"
+V(ntw)$plotname[grep("Helmholtz-Zentrum für Umweltforschung GmbH - UFZ", V(ntw)$name)] <- "UFZ"
+V(ntw)$plotname[grep("Senckenberg Gesellschaft für Naturforschung", V(ntw)$name)] <- "SGN"
+#V(ntw)$vertex.size[V(ntw)$type == "Institution"] <- 
+#V(ntw)$vertex.size[V(ntw)$type == "Projekt"] <- 
+  
 coul <- RColorBrewer::brewer.pal(5, "YlOrBr")
 palette <- as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"])
 palette[which(palette == 1)] <- 1
@@ -266,18 +404,36 @@ palette[palette %in% c(11:15)] <- 4
 palette[palette > 15] <- 5
 farben <- coul[palette]
 
-V(ntw)$plotname.cex <- 5 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 2
+V(ntw)$vertex.label.cex <- 2 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 0.5
 V(ntw)$vertex.col[V(ntw)$type == "Institution"] <- farben
-#V(ntw)$vertex.col[V(ntw)$ressort == "BMBF"] <- "dark grey"
-V(ntw)$vertex.col[V(ntw)$budget < 1000000] <- "light blue"
-V(ntw)$vertex.col[V(ntw)$budget >= 1000000] <- "cornflowerblue"
-V(ntw)$vertex.col[V(ntw)$budget >= 5000000] <- "dark blue"
 
-lyout <- layout.fruchterman.reingold(ntw)
-plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
-     vertex.label = V(ntw)$plotname, vertex.label.family = "Calibri", vertex.label.cex = 0.5,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0, edge.color = "light grey",
-     layout = lyout)
+budget <- c("grey90", "dark grey", "black") #"light blue", "cornflowerblue", "dark blue")
+V(ntw)$vertex.frame.col[V(ntw)$budget < 1000000] <- budget[1]
+V(ntw)$vertex.frame.col[V(ntw)$budget >= 1000000] <- budget[2]
+V(ntw)$vertex.frame.col[V(ntw)$budget >= 5000000] <- budget[3]
+
+ressort <- c("grey", "goldenrod4", "forestgreen", "darkorchid")
+V(ntw)$vertex.col[V(ntw)$ressort == "BMBF"] <- ressort[1]
+V(ntw)$vertex.col[V(ntw)$ressort == "BMEL"] <- ressort[2]
+V(ntw)$vertex.col[V(ntw)$ressort == "BMU"] <- ressort[3]
+V(ntw)$vertex.col[V(ntw)$ressort == "BMWi"] <- ressort[4]
+
+lyout <- layout.fruchterman.reingold(ntw) #layout.auto(ntw)
+plot(ntw, vertex.size = 3, vertex.color = V(ntw)$vertex.col,
+     vertex.label = V(ntw)$plotname, vertex.label.family = "Calibri", vertex.label.cex = V(ntw)$vertex.label.cex,
+     vertex.frame.color = V(ntw)$vertex.frame.col, vertex.label.color = "black",
+     edge.arrow.size = 0, edge.color = "gainsboro",
+     layout = lyout,
+     main = "ökosystem")
+legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
+legend(1,1.2, title = "Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
+legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
+text(0,1.1, "Schriftgröße = Betweenness")
+
+biodiv_sna <- cbind(nodes,
+                    degree = V(ntw)$degree,
+                    betweenness = V(ntw)$betweenness)
 ```
+
+
 
