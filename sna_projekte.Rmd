@@ -423,33 +423,28 @@ Gdata <- biodivbiolvielfalt
 ```
 
 ```{r Auswahl Förderzeitraum, eval=FALSE}
-Gdata$Förderzeitraum <- NA
-Gdata$calc <- NA
-Gdata <- Gdata[,c(1:2,17,18,3:16)]
+Gdata$Förderjahre <- NA
+Gdata <- Gdata[,c(1:2,17,3:16)]
 
-#Gdata$Laufzeit.von <- strptime(Gdata$Laufzeit.von, format = "%d.%m.%Y")
-#Gdata$Laufzeit.bis <- strptime(Gdata$Laufzeit.bis, format = "%d.%m.%Y")
+#Gdata$calc <- paste(as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")), " - ",
+#                              as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")))
 
-Gdata$calc <- paste(as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")), " - ",
-                              as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")))
 years <- c(as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")) - 
              as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")))
 nrow <- c(1:nrow(Gdata))
 
-
 for(n in nrow){
   p <- 1
-  Gdata[n,3] <- paste(as.numeric(format(as.Date(Gdata[n,5], "%d.%m.%Y"), "%Y")),
-                      #strrep((as.numeric(format(as.Date(Gdata[n,5], "%d.%m.%Y"), "%Y")) + p), years[n]), sep = "/")
-                                (repeat{
-                                  c(as.numeric(format(as.Date(Gdata[n,5], "%d.%m.%Y"), "%Y")) + p)
-                                  p <- p + 1
-                                  if(p == years[n]){break}}), sep = "/")
+  period <- c(seq(from = as.numeric(format(as.Date(Gdata[n,4], "%d.%m.%Y"), "%Y")), 
+                        length.out = (years[n]+1)))
+  period_num <- c(1:length(period))
+  Gdata[n,3] <- paste(period, collapse = "/")
 }
+rm(years, nrow, n, p, period, period_num)
 
+Gdata <- Gdata[grep("2019", Gdata$Förderjahre),]
 
 ```
-
 
 ```{r Vorbereitung, eval=FALSE}
 inst <- data.frame(id = Gdata$inst_id,
@@ -477,7 +472,7 @@ nodes <- nodes[-which(duplicated(nodes$id)),]
 str(nodes)
 
 links <- Gdata
-links <- links[,c(8,5,9,10,6,7,1,2,3,4,11,12,13,14,15,16)]
+links <- links[,c(9,6,10,11,7,8,1,2,3,4,5,12,13,14,15,16,17)]
 names(links)[c(1,2)] <- c("from", "to")
 
 library(igraph)
@@ -527,7 +522,7 @@ plot(ntw, vertex.size = 3, vertex.color = V(ntw)$vertex.col,
      vertex.frame.color = V(ntw)$vertex.frame.col, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = "gainsboro",
      layout = lyout,
-     main = "biodiv + biologische Vielfalt")
+     main = "Titel")
 legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
 legend(1,1.2, title = "Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
 legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
