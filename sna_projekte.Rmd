@@ -59,6 +59,8 @@ if("circlize" %in% rownames(installed.packages())   == FALSE){
   install.packages("circlize")}
 if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
+if("lubridate" %in% rownames(installed.packages())   == FALSE){
+  install.packages("lubridate")}
 ```
 
 ```{r set additional functions, eval=FALSE}
@@ -144,11 +146,9 @@ for(n in nrow){
 rm(proj_id, nrow, nrows, n, s)
 biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
 rm(biodiv_einzeln, biodiv_verbund)
-
-#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
 ```
 ```{r "biodiv" + "ökosystem" subset, eval=FALSE}
-biodiv <- rbind(projects[grep("biodiv", projects$Thema),],
+biodivoecosystem <- rbind(projects[grep("biodiv", projects$Thema),],
                 projects[grep("Biodiv", projects$Thema),],
                 projects[grep("biodiv", projects$Verbundprojekt),],
                 projects[grep("Biodiv", projects$Verbundprojekt),],
@@ -160,24 +160,28 @@ biodiv <- rbind(projects[grep("biodiv", projects$Thema),],
                 projects[grep("Ökosystem", projects$Verbundprojekt),],
                 projects[grep("ökosystem", projects$Klartext.Leistungsplansystematik),],
                 projects[grep("Ökosystem", projects$Klartext.Leistungsplansystematik),])
-biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
-biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+biodivoecosystem <- biodivoecosystem[order(biodivoecosystem$Ressort, 
+                                           biodivoecosystem$PT, 
+                                           biodivoecosystem$Verbundprojekt, 
+                                           biodivoecosystem$Thema),]
+biodivoecosystem <- biodivoecosystem[-c(which(duplicated(biodivoecosystem))),]
 
-inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
-                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+inst_ids <- data.frame(unique = unique(biodivoecosystem$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodivoecosystem$Zuwendungsempfänger))), 
+                                              sep = "")), 
                       stringsAsFactors = FALSE)
-nrow <- c(1:nrow(biodiv))
+nrow <- c(1:nrow(biodivoecosystem))
 nrows <- c(1:nrow(inst_ids))
 for(n in nrow){
   for (s in nrows){
-    if(biodiv[n,9] == inst_ids[s,1]){
-       biodiv[n,8] <- inst_ids[s,2]}
+    if(biodivoecosystem[n,9] == inst_ids[s,1]){
+       biodivoecosystem[n,8] <- inst_ids[s,2]}
     else{}
 }}
 rm(inst_ids, nrow, nrows, n, s)
 
-biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
-biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+biodiv_einzeln <- subset(biodivoecosystem, biodivoecosystem$Verbundprojekt == "")
+biodiv_verbund <- subset(biodivoecosystem, biodivoecosystem$Verbundprojekt != "")
 proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
                       id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
                       stringsAsFactors = FALSE)
@@ -206,36 +210,34 @@ for(n in nrow){
     else{}
 }}
 rm(proj_id, nrow, nrows, n, s)
-biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
+biodivoecosystem <- rbind(biodiv_verbund, biodiv_einzeln)
 rm(biodiv_einzeln, biodiv_verbund)
-
-#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
 ```
 ```{r "ökosystem" subset, eval=FALSE}
-biodiv <- rbind(projects[grep("ökosystem", projects$Thema),],
+oekosystem <- rbind(projects[grep("ökosystem", projects$Thema),],
                 projects[grep("Ökosystem", projects$Thema),],
                 projects[grep("ökosystem", projects$Verbundprojekt),],
                 projects[grep("Ökosystem", projects$Verbundprojekt),],
                 projects[grep("ökosystem", projects$Klartext.Leistungsplansystematik),],
                 projects[grep("Ökosystem", projects$Klartext.Leistungsplansystematik),])
-biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
-biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+oekosystem <- oekosystem[order(oekosystem$Ressort, oekosystem$PT, oekosystem$Verbundprojekt, oekosystem$Thema),]
+oekosystem <- oekosystem[-c(which(duplicated(oekosystem))),]
 
-inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
-                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+inst_ids <- data.frame(unique = unique(oekosystem$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(oekosystem$Zuwendungsempfänger))), sep = "")), 
                       stringsAsFactors = FALSE)
-nrow <- c(1:nrow(biodiv))
+nrow <- c(1:nrow(oekosystem))
 nrows <- c(1:nrow(inst_ids))
 for(n in nrow){
   for (s in nrows){
-    if(biodiv[n,9] == inst_ids[s,1]){
-       biodiv[n,8] <- inst_ids[s,2]}
+    if(oekosystem[n,9] == inst_ids[s,1]){
+       oekosystem[n,8] <- inst_ids[s,2]}
     else{}
 }}
 rm(inst_ids, nrow, nrows, n, s)
 
-biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
-biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+biodiv_einzeln <- subset(oekosystem, oekosystem$Verbundprojekt == "")
+biodiv_verbund <- subset(oekosystem, oekosystem$Verbundprojekt != "")
 proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
                       id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
                       stringsAsFactors = FALSE)
@@ -264,54 +266,119 @@ for(n in nrow){
     else{}
 }}
 rm(proj_id, nrow, nrows, n, s)
-biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
+oekosystem <- rbind(biodiv_verbund, biodiv_einzeln)
 rm(biodiv_einzeln, biodiv_verbund)
+```
+```{r "biodiv" + "biologische(n) Vielfalt" subset, eval=FALSE}
+biodivbiolvielfalt <- rbind(projects[grep("biodiv", projects$Thema),],
+                projects[grep("Biodiv", projects$Thema),],
+                projects[grep("biodiv", projects$Verbundprojekt),],
+                projects[grep("Biodiv", projects$Verbundprojekt),],
+                projects[grep("biodiv", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("Biodiv", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("biologische Vielfalt", projects$Thema),],
+                projects[grep("biologischen Vielfalt", projects$Thema),],
+                projects[grep("biologische Vielfalt", projects$Verbundprojekt),],
+                projects[grep("biologischen Vielfalt", projects$Verbundprojekt),],
+                projects[grep("biologische Vielfalt", projects$Klartext.Leistungsplansystematik),],
+                projects[grep("biologischen Vielfalt", projects$Klartext.Leistungsplansystematik),])
+biodivbiolvielfalt <- biodivbiolvielfalt[order(biodivbiolvielfalt$Ressort, 
+                                           biodivbiolvielfalt$PT, 
+                                           biodivbiolvielfalt$Verbundprojekt, 
+                                           biodivbiolvielfalt$Thema),]
+biodivbiolvielfalt <- biodivbiolvielfalt[-c(which(duplicated(biodivbiolvielfalt))),]
 
-#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+inst_ids <- data.frame(unique = unique(biodivbiolvielfalt$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodivbiolvielfalt$Zuwendungsempfänger))), 
+                                              sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodivbiolvielfalt))
+nrows <- c(1:nrow(inst_ids))
+for(n in nrow){
+  for (s in nrows){
+    if(biodivbiolvielfalt[n,9] == inst_ids[s,1]){
+       biodivbiolvielfalt[n,8] <- inst_ids[s,2]}
+    else{}
+}}
+rm(inst_ids, nrow, nrows, n, s)
+
+biodiv_einzeln <- subset(biodivbiolvielfalt, biodivbiolvielfalt$Verbundprojekt == "")
+biodiv_verbund <- subset(biodivbiolvielfalt, biodivbiolvielfalt$Verbundprojekt != "")
+proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
+                      id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_verbund))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_verbund[n,7] == proj_id[s,1]){
+       biodiv_verbund[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+proj_id <- data.frame(unique = unique(biodiv_einzeln$Thema),
+                      id = as.character(
+                        paste("proj", 
+                              c((length(unique(biodiv_verbund$Verbundprojekt))+1):
+                                (length(unique(biodiv_einzeln$Thema))+length(unique(biodiv_verbund$Verbundprojekt)))
+                                 ), sep = "")), 
+                      stringsAsFactors = FALSE)
+nrow <- c(1:nrow(biodiv_einzeln))
+nrows <- c(1:nrow(proj_id))
+for(n in nrow){
+  for (s in nrows){
+    if(biodiv_einzeln[n,6] == proj_id[s,1]){
+       biodiv_einzeln[n,5] <- proj_id[s,2]}
+    else{}
+}}
+rm(proj_id, nrow, nrows, n, s)
+biodivbiolvielfalt <- rbind(biodiv_verbund, biodiv_einzeln)
+rm(biodiv_einzeln, biodiv_verbund)
 ```
 
-```{r "biodiv"-inst subset, eval=FALSE}
-biodiv <- rbind(projects[grep("biodiv", projects$Thema),],
+
+```{r "biodiv"-inst subset # MACHT KEINEN SINN, eval=FALSE}
+biodivinst <- rbind(projects[grep("biodiv", projects$Thema),],
                 projects[grep("Biodiv", projects$Thema),],
                 projects[grep("biodiv", projects$Verbundprojekt),],
                 projects[grep("Biodiv", projects$Verbundprojekt),],
                 projects[grep("biodiv", projects$Klartext.Leistungsplansystematik),],
                 projects[grep("Biodiv", projects$Klartext.Leistungsplansystematik),])
-biodiv <- biodiv[order(biodiv$Ressort, biodiv$PT, biodiv$Verbundprojekt, biodiv$Thema),]
-biodiv <- biodiv[-c(which(duplicated(biodiv))),]
+biodivinst <- biodivinst[order(biodivinst$Ressort, biodivinst$PT, biodivinst$Verbundprojekt, biodivinst$Thema),]
+biodivinst <- biodivinst[-c(which(duplicated(biodivinst))),]
 
-inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
-                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+inst_ids <- data.frame(unique = unique(biodivinst$Zuwendungsempfänger),
+                      id = as.character(paste("inst", c(1:length(unique(biodivinst$Zuwendungsempfänger))), sep = "")), 
                       stringsAsFactors = FALSE)
-nrow <- c(1:nrow(biodiv))
+nrow <- c(1:nrow(biodivinst))
 nrows <- c(1:nrow(inst_ids))
 for(n in nrow){
   for (s in nrows){
-    if(biodiv[n,9] == inst_ids[s,1]){
-       biodiv[n,8] <- inst_ids[s,2]}
+    if(biodivinst[n,9] == inst_ids[s,1]){
+       biodivinst[n,8] <- inst_ids[s,2]}
     else{}
 }}
 rm(nrow, nrows, n, s)
 
-Gdata <- projects[grep(inst_ids[1,1], projects$Zuwendungsempfänger),]
+biodivinst_work <- projects[grep(inst_ids[1,1], projects$Zuwendungsempfänger),]
 inst_ids_num <- c(2:nrow(inst_ids))
 for(i in inst_ids_num){
-  Gdata <- rbind(Gdata, projects[grep(inst_ids[i,1], projects$Zuwendungsempfänger),])
+  biodivinst_work <- rbind(biodivinst_work, projects[grep(inst_ids[i,1], projects$Zuwendungsempfänger),])
 }
 rm(inst_ids_num, i)
 
-nrow <- c(1:nrow(Gdata))
+nrow <- c(1:nrow(biodivinst_work))
 nrows <- c(1:nrow(inst_ids))
 for(n in nrow){
   for (s in nrows){
-    if(Gdata[n,9] == inst_ids[s,1]){
-       Gdata[n,8] <- inst_ids[s,2]}
+    if(biodivinst_work[n,9] == inst_ids[s,1]){
+       biodivinst_work[n,8] <- inst_ids[s,2]}
     else{}
 }}
 rm(nrow, nrows, n, s)
 
-biodiv_einzeln <- subset(biodiv, biodiv$Verbundprojekt == "")
-biodiv_verbund <- subset(biodiv, biodiv$Verbundprojekt != "")
+biodiv_einzeln <- subset(biodivinst_work, biodivinst_work$Verbundprojekt == "")
+biodiv_verbund <- subset(biodivinst_work, biodivinst_work$Verbundprojekt != "")
 proj_id <- data.frame(unique = unique(biodiv_verbund$Verbundprojekt),
                       id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$Verbundprojekt))), sep = "")), 
                       stringsAsFactors = FALSE)
@@ -340,32 +407,68 @@ for(n in nrow){
     else{}
 }}
 rm(proj_id, nrow, nrows, n, s)
-biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
-rm(biodiv_einzeln, biodiv_verbund)
-
-#biodiv$Fördersumme.in.EUR <- as.numeric(biodiv$Fördersumme.in.EUR)
+biodivinst <- rbind(biodiv_verbund, biodiv_einzeln)
+rm(biodiv_einzeln, biodiv_verbund, biodivinst_work)
 ```
+
 
 # Netzwerkanalyse
 
+```{r Auswahl Datensatz, eval=FALSE}
+Gdata <- biodiv
+Gdata <- biodivoecosystem
+Gdata <- oecosystem
+Gdata <- biodivbiolvielfalt
+
+```
+
+```{r Auswahl Förderzeitraum, eval=FALSE}
+Gdata$Förderzeitraum <- NA
+Gdata$calc <- NA
+Gdata <- Gdata[,c(1:2,17,18,3:16)]
+
+#Gdata$Laufzeit.von <- strptime(Gdata$Laufzeit.von, format = "%d.%m.%Y")
+#Gdata$Laufzeit.bis <- strptime(Gdata$Laufzeit.bis, format = "%d.%m.%Y")
+
+Gdata$calc <- paste(as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")), " - ",
+                              as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")))
+years <- c(as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")) - 
+             as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")))
+nrow <- c(1:nrow(Gdata))
+
+
+for(n in nrow){
+  p <- 1
+  Gdata[n,3] <- paste(as.numeric(format(as.Date(Gdata[n,5], "%d.%m.%Y"), "%Y")),
+                      #strrep((as.numeric(format(as.Date(Gdata[n,5], "%d.%m.%Y"), "%Y")) + p), years[n]), sep = "/")
+                                (repeat{
+                                  c(as.numeric(format(as.Date(Gdata[n,5], "%d.%m.%Y"), "%Y")) + p)
+                                  p <- p + 1
+                                  if(p == years[n]){break}}), sep = "/")
+}
+
+
+```
+
+
 ```{r Vorbereitung, eval=FALSE}
-inst <- data.frame(id = biodiv$inst_id,
+inst <- data.frame(id = Gdata$inst_id,
                    abbr = NA,
-                   name = biodiv$Zuwendungsempfänger,
+                   name = Gdata$Zuwendungsempfänger,
                    type = "Institution",
                    ressort = NA,
                    pt = NA,
                    leistungsplansystematik = NA,
                    budget = NA,
                    stringsAsFactors = FALSE)
-proj <- data.frame(id = biodiv$proj_id,
+proj <- data.frame(id = Gdata$proj_id,
                    abbr = NA,
-                   name = biodiv$Thema,
+                   name = Gdata$Thema,
                    type = "Projekt",
-                   ressort = biodiv$Ressort,
-                   pt = biodiv$PT,
-                   leistungsplansystematik = biodiv$Klartext.Leistungsplansystematik,
-                   budget = biodiv$Fördersumme.in.EUR,
+                   ressort = Gdata$Ressort,
+                   pt = Gdata$PT,
+                   leistungsplansystematik = Gdata$Klartext.Leistungsplansystematik,
+                   budget = Gdata$Fördersumme.in.EUR,
                    stringsAsFactors = FALSE)
 nodes <- rbind(inst,proj)
 rm(inst, proj)
@@ -373,7 +476,7 @@ nodes <- nodes[-which(duplicated(nodes$id)),]
 
 str(nodes)
 
-links <- biodiv
+links <- Gdata
 links <- links[,c(8,5,9,10,6,7,1,2,3,4,11,12,13,14,15,16)]
 names(links)[c(1,2)] <- c("from", "to")
 
@@ -424,15 +527,15 @@ plot(ntw, vertex.size = 3, vertex.color = V(ntw)$vertex.col,
      vertex.frame.color = V(ntw)$vertex.frame.col, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = "gainsboro",
      layout = lyout,
-     main = "ökosystem")
+     main = "biodiv + biologische Vielfalt")
 legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
 legend(1,1.2, title = "Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
 legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
 text(0,1.1, "Schriftgröße = Betweenness")
 
-biodiv_sna <- cbind(nodes,
-                    degree = V(ntw)$degree,
-                    betweenness = V(ntw)$betweenness)
+Gdata_sna <- cbind(nodes,
+                   degree = V(ntw)$degree,
+                   betweenness = V(ntw)$betweenness)
 ```
 
 
