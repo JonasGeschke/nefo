@@ -211,7 +211,90 @@ projects <- projects[,c(1,2,10,11,16,7,14,15,3,4,5,6,13,9,8,12)]
 
 projects <- projects[order(projects$Ressort, projects$Laufzeit.von, projects$Laufzeit.bis),]
 
-abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+# Korrektur der Fraunhofer-Gesellschaft
+#projects <- subset(projects, projects$Zuwendungsempfänger == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.")
+nrow <- c(1:nrow(projects))
+for(n in nrow){
+  if(projects[n,9] == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V."){
+    projects[n,9] <- projects[n,11]
+  }
+}
+rm(nrow, n)
+
+#abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+#kuerzel <- data.frame(abbr = NA, inst = unique(Gdata$Zuwendungsempfänger))
+#nrow_kuerzel <- c(1:nrow(kuerzel))
+#nrow_abbr <- c(1:nrow(abbr))
+#for(i in nrow_kuerzel){
+#  for(j in nrow_abbr){
+#    if(kuerzel[i,2] == abbr[j,2]){
+#      kuerzel[i,1] <- abbr[j,3]
+#    }
+#  }
+#}
+#rm(nrow_kuerzel, nrow_abbr, abbr)
+#write.csv2(kuerzel, file = "kuerzel.csv")
+```
+
+```{r Analyse des Leistungsplans, eval=FALSE}
+leistungsplan <- projects[,c(14,15)]
+leistungsplan <- leistungsplan[-which(duplicated(leistungsplan)),]
+leistungsplan <- leistungsplan[-which(is.na(leistungsplan$Klartext.Leistungsplansystematik)),]
+leistungsplan <- leistungsplan[order(leistungsplan$Leistungsplansystematik),]
+
+library(tidytext)
+library(textreadr)
+library(dplyr)
+library(tidyr)
+
+stopwords_de <- get_stopwords(language = "de")
+
+lplan_df <- data_frame(line = 1:nrow(leistungsplan), text = leistungsplan$Klartext.Leistungsplansystematik)
+tidy_lplan <- lplan_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_lplan <- tidy_lplan[-which(duplicated(tidy_lplan)),]
+tidy_lplan$document <- "lplan"
+lplan <- tidy_lplan %>% count(word, sort = TRUE)
+
+# Load NBS
+NBS_raw <- read_document("Daten/nbs_plaintext.docx")
+NBS_df <- data_frame(line = 1:length(NBS_raw), text = NBS_raw)
+tidy_NBS <- NBS_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_NBS$document <- "NBS"
+NBS <- tidy_NBS %>% count(word, sort = TRUE)
+
+# Load NSO
+NSO_raw <- read_document("Daten/nso_plaintext.docx")
+NSO_df <- data_frame(line = 1:length(NSO_raw), text = NSO_raw)
+tidy_NSO <- NSO_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
+tidy_NSO$document <- "NSO"
+NSO <- tidy_NSO %>% count(word, sort = TRUE)
+
+rm(lplan_df, NBS_df, NSO_df, NBS_raw, NSO_raw, tidy_lplan, tidy_NBS, tidy_NSO, stopwords_de)
+# Match Strategies with Leistungsplan
+lplan$NBS <- NA
+lplan$NSO <- NA
+
+nrow_lplan <- c(1:nrow(lplan))
+nrow_nbs <- c(1:nrow(NBS))
+nrow_nso <- c(1:nrow(NSO))
+for(n in nrow_lplan){
+  for(b in nrow_nbs){
+    if(lplan[n,1] == NBS[b,1]){
+      lplan[n,3] <- NBS[b,2]
+    }
+  }
+  for(o in nrow_nso){
+    if(lplan[n,1] == NSO[o,1]){
+      lplan[n,4] <- NBS[o,2]
+    }
+  }
+}
+rm(nrow_lplan, nrow_nbs, nrow_nso, n, b, o)
+
+write.csv2(lplan, file = "leistungsplan_stichworte.csv")
+
+lplan_cut <- lplan[-which(is.na(lplan$NBS) & is.na(lplan$NSO)),]
+write.csv2(lplan_cut, file = "leistungsplan_stichworte_strategien.csv")
 ```
 
 ```{r subset by keywords, eval=FALSE}
@@ -220,8 +303,17 @@ biodivbiolvielfalt <- subset_projects(keywords = c("biodiv",
                                                    "biologische vielfalt", "biologischen vielfalt",
                                                    "biological diversity"))
 
-monitoring <- subset_projects(keywords = c("biodiv", "monitoring"))
-monitoring <- subset_projects(keyword = c("biodiversitätsmonitoring", "monitoring of biodiversity"))
+monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "biologischen vielfalt",
+                                           "biological diversity", "monitoring"))
+
+```
+
+```{r Auswahl Datensatz und Förderzeitraum, eval=FALSE}
+Gdata <- subset_förderzeitraum(years = c("all"), dataset = biodivbiolvielfalt)
+
+Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring)
+Gdata <- Gdata[-which(Gdata$Klartext.Leistungsplansystematik %in% c("Monitoring")),]#, 
+                                                                    "Mensch-Technik-Interaktion für den demografischen Wandel (abgeschlossen)")),]
 
 ```
 
@@ -255,13 +347,6 @@ Gdata_FN$`GBIF-D` <- as.numeric(Gdata_FN$`GBIF-D`) #raus
 
 
 # Netzwerkanalyse
-
-```{r Auswahl Datensatz und Förderzeitraum, eval=FALSE}
-Gdata <- subset_förderzeitraum(years = c("all"), dataset = biodivbiolvielfalt)
-Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring) ### minus Leistungsplansystematik Monitoring
-
-
-```
 
 ```{r Vorbereitung, eval=FALSE}
 inst <- data.frame(id = Gdata$inst_id,
@@ -318,8 +403,9 @@ V(ntw)$betweenness <- betweenness(ntw, directed = F)
 
 V(ntw)$plotname <- NA
 V(ntw)$plotname[V(ntw)$type == "Institution"] <- nodes$id[V(ntw)$type == "Institution"]
-#V(ntw)$vertex.size[V(ntw)$type == "Institution"] <- 
-#V(ntw)$vertex.size[V(ntw)$type == "Projekt"] <- 
+V(ntw)$plotname[as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"]) == 1] <- NA
+V(ntw)$vertex.size[V(ntw)$type == "Institution"] <- 3
+V(ntw)$vertex.size[V(ntw)$type == "Projekt"] <- 1.5
   
 coul <- RColorBrewer::brewer.pal(5, "YlOrBr")
 palette <- as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"])
@@ -333,10 +419,10 @@ farben <- coul[palette]
 V(ntw)$vertex.label.cex <- 2 * V(ntw)$betweenness / max(V(ntw)$betweenness) + 0.5
 V(ntw)$vertex.col[V(ntw)$type == "Institution"] <- farben
 
-budget <- c("grey90", "dark grey", "black") #"light blue", "cornflowerblue", "dark blue")
-V(ntw)$vertex.frame.col[V(ntw)$budget < 1000000] <- budget[1]
-V(ntw)$vertex.frame.col[V(ntw)$budget >= 1000000] <- budget[2]
-V(ntw)$vertex.frame.col[V(ntw)$budget >= 5000000] <- budget[3]
+#budget <- c("grey90", "dark grey", "black") #"light blue", "cornflowerblue", "dark blue")
+#V(ntw)$vertex.frame.col[V(ntw)$budget < 1000000] <- budget[1]
+#V(ntw)$vertex.frame.col[V(ntw)$budget >= 1000000] <- budget[2]
+#V(ntw)$vertex.frame.col[V(ntw)$budget >= 5000000] <- budget[3]
 
 ressort <- c("grey", "goldenrod4", "forestgreen", "darkorchid")
 V(ntw)$vertex.col[V(ntw)$ressort == "BMBF"] <- ressort[1]
@@ -345,15 +431,17 @@ V(ntw)$vertex.col[V(ntw)$ressort == "BMU"] <- ressort[3]
 V(ntw)$vertex.col[V(ntw)$ressort == "BMWi"] <- ressort[4]
 
 lyout <- layout.auto(ntw) #layout.fruchterman.reingold(ntw)
-plot(ntw, vertex.size = 3, vertex.color = V(ntw)$vertex.col,
+plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
      vertex.label = V(ntw)$plotname, vertex.label.family = "Calibri", vertex.label.cex = V(ntw)$vertex.label.cex,
-     vertex.frame.color = V(ntw)$vertex.frame.col, vertex.label.color = "black",
+     vertex.frame.color = "light grey", vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = "gainsboro",
      layout = lyout,
-     main = "Titel")
-legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
-legend(1,1.2, title = "Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
-legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
+     main = "Projektbasierte Vernetzung im Biodiversitätsmonitoring 2019")
+legend(-1.6,-0.5, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
+legend(1,-0.5, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
+#legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
+#legend(1,1.2, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
+#legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
 text(0,1.1, "Schriftgröße = Betweenness")
 
 Gdata_sna <- cbind(nodes,
