@@ -61,6 +61,8 @@ if("RColorBrewer" %in% rownames(installed.packages())   == FALSE){
   install.packages("RColorBrewer")}
 if("lubridate" %in% rownames(installed.packages())   == FALSE){
   install.packages("lubridate")}
+if("Rcrawler" %in% rownames(installed.packages())   == FALSE){
+  install.packages("Rcrawler")}
 ```
 
 ```{r set additional functions, eval=FALSE}
@@ -190,6 +192,41 @@ return(Gdata_new)
 
 # Analyse
 
+```{r Crawling GEPRIS, eval=FALSE}
+library(Rcrawler)
+
+Suche <- "http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=Finden&keywords_criterion=biodiv*+OR+%26quot%3Bbiologische+vielfalt%26quot%3B+OR+%26quot%3Bbiologischen+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B+OR+%26quot%3Bmonitoring%26quot%3B&language=en&nurProjekteMitAB=false&task=doSearchSimple"
+Rcrawler(Suche, no_cores = 4, no_conn = 4, MaxDepth = 1,
+         dataUrlfilter = "/gepris/projekt/",
+         ExtractCSSPat = c(".details > h3:nth-child(1)", # Titel
+                           ".details > div:nth-child(2) > span:nth-child(2)", # Antragsteller
+                           ".firstUnderAntragsbeteiligte > span:nth-child(2)", # Fachliche Zuordnung
+                           ".details > div:nth-child(4) > span:nth-child(2)", # Förderzeitraum
+                           ".projektnummer > span:nth-child(2)", # Projektnummer
+                           "#projekttext", # Beschreibung
+                           "#projektbeschreibung > div:nth-child(2) > span:nth-child(2)", # DFG-Verfahren
+                           "#projektbeschreibung > div:nth-child(3) > span:nth-child(2) > a:nth-child(1)" # Verbundprojekt
+                           ),
+         PatternsNames = c("Titel",
+                           "Antragsteller",
+                           "Fachliche_Zuordnung",
+                           "Förderzeitraum",
+                           "Projektnummer",
+                           "Beschreibung",
+                           "DFG_Verfahren",
+                           "Verbundprojekt")
+         )
+gepris <- data.frame(do.call("rbind", DATA))
+
+Rcrawler("http://www.biodiversity.de", no_cores = 4, no_conn = 4 , NetworkData = TRUE, NetwExtLinks =TRUE,  statslinks = TRUE)
+network <- graph.data.frame(NetwEdges, directed=T)
+plot(network, vertex.size = 3, vertex.color = "dark grey", 
+     vertex.label.family = "Calibri", vertex.label.cex = 0.5,
+     vertex.frame.color = NA, vertex.label.color = "black",
+     edge.arrow.size = 0.5)
+```
+
+
 ```{r Laden der Rohdaten und Vorbereitung der Daten: PROJEKTE, eval=FALSE}
 library(xlsx)
 ## Load raw data
@@ -221,18 +258,21 @@ for(n in nrow){
 }
 rm(nrow, n)
 
-#abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
-#kuerzel <- data.frame(abbr = NA, inst = unique(Gdata$Zuwendungsempfänger))
-#nrow_kuerzel <- c(1:nrow(kuerzel))
-#nrow_abbr <- c(1:nrow(abbr))
-#for(i in nrow_kuerzel){
-#  for(j in nrow_abbr){
-#    if(kuerzel[i,2] == abbr[j,2]){
-#      kuerzel[i,1] <- abbr[j,3]
-#    }
-#  }
-#}
-#rm(nrow_kuerzel, nrow_abbr, abbr)
+abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+abbr <- read.csv2("kuerzel_Donnerstag.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+abbr <- abbr[,-1]
+
+kuerzel <- data.frame(abbr = NA, inst = unique(Gdata$Zuwendungsempfänger))
+nrow_kuerzel <- c(1:nrow(kuerzel))
+nrow_abbr <- c(1:nrow(abbr))
+for(i in nrow_kuerzel){
+  for(j in nrow_abbr){
+    if(kuerzel[i,2] == abbr[j,2]){
+      kuerzel[i,1] <- abbr[j,3]
+    }
+  }
+}
+rm(nrow_kuerzel, nrow_abbr, abbr)
 #write.csv2(kuerzel, file = "kuerzel.csv")
 ```
 
@@ -310,10 +350,11 @@ monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "bi
 
 ```{r Auswahl Datensatz und Förderzeitraum, eval=FALSE}
 Gdata <- subset_förderzeitraum(years = c("all"), dataset = biodivbiolvielfalt)
+Gdata <- subset_förderzeitraum(years = c(2019), dataset = biodivbiolvielfalt)
 
 Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring)
 Gdata <- Gdata[-which(Gdata$Klartext.Leistungsplansystematik %in% c("Monitoring")),]#, 
-                                                                    "Mensch-Technik-Interaktion für den demografischen Wandel (abgeschlossen)")),]
+                                                                    "Mensch-Technik-Interaktion für den demografischen Wandel (abgeschlossen)")),] # medical images
 
 ```
 
@@ -377,7 +418,7 @@ for(n in nodes_num){
 }
 for(n in nodes_num){
   if(nodes[n,3] %in% abbr$inst){
-    nodes[n,2] <- abbr[which(abbr[,2] == nodes[n,3]),3]
+    nodes[n,2] <- abbr[which(abbr[,2] == nodes[n,3]),1]
   }
 }
 rm(inst, proj, nodes_num, n)
@@ -402,10 +443,10 @@ V(ntw)$degree <- degree(ntw)
 V(ntw)$betweenness <- betweenness(ntw, directed = F)
 
 V(ntw)$plotname <- NA
-V(ntw)$plotname[V(ntw)$type == "Institution"] <- nodes$id[V(ntw)$type == "Institution"]
-V(ntw)$plotname[as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"]) == 1] <- NA
+V(ntw)$plotname[V(ntw)$type == "Institution"] <- nodes$abbr[V(ntw)$type == "Institution"]
+#V(ntw)$plotname[as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"]) == 1] <- NA
 V(ntw)$vertex.size[V(ntw)$type == "Institution"] <- 3
-V(ntw)$vertex.size[V(ntw)$type == "Projekt"] <- 1.5
+V(ntw)$vertex.size[V(ntw)$type == "Projekt"] <- 2
   
 coul <- RColorBrewer::brewer.pal(5, "YlOrBr")
 palette <- as.numeric(V(ntw)$degree[V(ntw)$type == "Institution"])
@@ -431,14 +472,15 @@ V(ntw)$vertex.col[V(ntw)$ressort == "BMU"] <- ressort[3]
 V(ntw)$vertex.col[V(ntw)$ressort == "BMWi"] <- ressort[4]
 
 lyout <- layout.auto(ntw) #layout.fruchterman.reingold(ntw)
+
 plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
      vertex.label = V(ntw)$plotname, vertex.label.family = "Calibri", vertex.label.cex = V(ntw)$vertex.label.cex,
      vertex.frame.color = "light grey", vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = "gainsboro",
      layout = lyout,
-     main = "Projektbasierte Vernetzung im Biodiversitätsmonitoring 2019")
-legend(-1.6,-0.5, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
-legend(1,-0.5, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
+     main = "Projektbasierte Vernetzung in der Biodiversitätsforschung 2019")
+legend(-1.6,-0.7, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
+legend(1,-0.7, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
 #legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
 #legend(1,1.2, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
 #legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
