@@ -195,7 +195,10 @@ return(Gdata_new)
 ```{r Crawling GEPRIS, eval=FALSE}
 library(Rcrawler)
 
-Suche <- "http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=Finden&keywords_criterion=biodiv*+OR+%26quot%3Bbiologische+vielfalt%26quot%3B+OR+%26quot%3Bbiologischen+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B+OR+%26quot%3Bmonitoring%26quot%3B&language=en&nurProjekteMitAB=false&task=doSearchSimple"
+Suche <- "http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=Finden&keywords_criterion=biodiv*+OR+%26quot%3Bbiologische+vielfalt%26quot%3B+OR+%26quot%3Bbiologischen+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B+OR+%26quot%3Bmonitoring%26quot%3B&language=de&nurProjekteMitAB=false&task=doSearchSimple"
+
+keywords <- # * = und Anhang | +OR+ = OR | + = Leerzeichen | %26quot%3B = Anführungsstriche
+Suche <- paste("http:_//gepris.dfg.de/gepris/OCTOPUS?context=project&findButton=Finden&keywords_criterion=", keywords, "&language=de&nurProjekteMitAB=false&task=doSearchSimple")
 Rcrawler(Suche, no_cores = 4, no_conn = 4, MaxDepth = 1,
          dataUrlfilter = "/gepris/projekt/",
          ExtractCSSPat = c(".details > h3:nth-child(1)", # Titel
