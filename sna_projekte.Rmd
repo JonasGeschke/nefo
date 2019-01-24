@@ -221,12 +221,19 @@ Rcrawler(Suche, no_cores = 4, no_conn = 4, MaxDepth = 1,
          )
 gepris <- data.frame(do.call("rbind", DATA))
 
-Rcrawler("http://www.biodiversity.de", no_cores = 4, no_conn = 4 , NetworkData = TRUE, NetwExtLinks =TRUE,  statslinks = TRUE)
+Rcrawler("http://www.biodiversity.de", no_cores = 4, no_conn = 4, 
+         ignoreUrlParams = c("image", "icon", "logo", "png", "jpg", "jpeg", "user", "file"), 
+         NetworkData = TRUE, NetwExtLinks =TRUE,  statslinks = TRUE)
+library(igraph)
 network <- graph.data.frame(NetwEdges, directed=T)
-plot(network, vertex.size = 3, vertex.color = "dark grey", 
-     vertex.label.family = "Calibri", vertex.label.cex = 0.5,
-     vertex.frame.color = NA, vertex.label.color = "black",
-     edge.arrow.size = 0.5)
+lyout <- layout.fruchterman.reingold(network)
+E(network)$edge.col[E(network)$Type == 1] <- "green"
+E(network)$edge.col[E(network)$Type == 2] <- "light blue"
+plot(network, vertex.size = 1, vertex.color = "forest green", 
+     vertex.label = NA, vertex.label.family = "Calibri", 
+     vertex.label.cex = NA, vertex.frame.color = NA, vertex.label.color = NA,
+     edge.arrow.size = 0.1, edge.color = E(network)$edge.col,
+     layout = lyout)
 ```
 
 
