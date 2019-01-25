@@ -282,7 +282,7 @@ for(i in nrow_kuerzel){
     }
   }
 }
-rm(nrow_kuerzel, nrow_abbr, abbr)
+rm(nrow_kuerzel, nrow_abbr)
 #write.csv2(kuerzel, file = "kuerzel.csv")
 ```
 
@@ -306,14 +306,19 @@ tidy_lplan$document <- "lplan"
 lplan <- tidy_lplan %>% count(word, sort = TRUE)
 
 # Load NBS
-NBS_raw <- read_document("Daten/nbs_plaintext.docx")
+
+NBS_raw <- read_pdf("Daten/nbs.pdf")
+NBS_raw <- NBS_raw$text
+#NBS_raw <- read_document("Daten/nbs_plaintext.docx")
 NBS_df <- data_frame(line = 1:length(NBS_raw), text = NBS_raw)
 tidy_NBS <- NBS_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_NBS$document <- "NBS"
 NBS <- tidy_NBS %>% count(word, sort = TRUE)
 
 # Load NSO
-NSO_raw <- read_document("Daten/nso_plaintext.docx")
+NSO_raw <- read_pdf("Daten/nso.pdf")
+NSO_raw <- NSO_raw$text
+#NSO_raw <- read_document("Daten/nso_plaintext.docx")
 NSO_df <- data_frame(line = 1:length(NSO_raw), text = NSO_raw)
 tidy_NSO <- NSO_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_NSO$document <- "NSO"
@@ -341,10 +346,14 @@ for(n in nrow_lplan){
 }
 rm(nrow_lplan, nrow_nbs, nrow_nso, n, b, o)
 
-write.csv2(lplan, file = "leistungsplan_stichworte.csv")
+#write.csv2(lplan, file = "leistungsplan_stichworte.csv")
 
-lplan_cut <- lplan[-which(is.na(lplan$NBS) & is.na(lplan$NSO)),]
-write.csv2(lplan_cut, file = "leistungsplan_stichworte_strategien.csv")
+lplan_na <- lplan[which(is.na(lplan$NBS) & is.na(lplan$NSO)),]
+#write.csv2(lplan_cut, file = "leistungsplan_stichworte_strategien.csv")
+
+NAs <- lplan_na$word
+
+raus <- leistungsplan$Klartext.Leistungsplansystematik
 ```
 
 ```{r subset by keywords, eval=FALSE}
@@ -363,7 +372,7 @@ Gdata <- subset_förderzeitraum(years = c("all"), dataset = biodivbiolvielfalt)
 Gdata <- subset_förderzeitraum(years = c(2019), dataset = biodivbiolvielfalt)
 
 Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring)
-Gdata <- Gdata[-which(Gdata$Klartext.Leistungsplansystematik %in% c("Monitoring")),]#, 
+Gdata <- Gdata[-which(Gdata$Klartext.Leistungsplansystematik %in% NAs),] #c("Monitoring")),]#, 
                                                                     "Mensch-Technik-Interaktion für den demografischen Wandel (abgeschlossen)")),] # medical images
 
 ```
