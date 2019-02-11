@@ -199,58 +199,59 @@ return(Gdata_new)
 ```{r Crawling GEPRIS, eval=FALSE}
 library(Rcrawler)
 
-keywords <- biodiv*+OR+%26quot%3Bbiologische+vielfalt%26quot%3B+OR+%26quot%3Bbiologischen+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B+OR+%26quot%3Bmonitoring%26quot%3B # * = und Anhang | +OR+ = OR | + = Leerzeichen | %26quot%3B = Anführungsstriche
-Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=project&findButton=Finden&hitsPerPage=10000&keywords_criterion=", keywords, "&gefoerdertIn=2018&language=de&nurProjekteMitAB=false&task=doSearchSimple", sep = "") # Förderjahr bearbeiten
+keywords <- "biodiv*+OR+%26quot%3Bbiologische*+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B" # * = und Anhang | +OR+ = OR | + = Leerzeichen | %26quot%3B = Anführungsstriche
+Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=project&findButton=Finden&hitsPerPage=10000&keywords_criterion=", keywords, "&language=de&nurProjekteMitAB=false&task=doSearchSimple", sep = "") # Förderjahr bearbeiten &gefoerdertIn=2018
 
+Suche <- "http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=historyCall&hitsPerPage=10000&index=0&keywords_criterion=biodiv*+OR+%26quot%3Bbiologische*+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B&nurProjekteMitAB=false&orderBy=name&task=doSearchSimple"
 
 Rcrawler(Suche, no_cores = 4, no_conn = 4, #MaxDepth = 1,
          dataUrlfilter = c("/gepris/projekt/"),
          crawlUrlfilter = c("/gepris/projekt/"),
          ignoreUrlParams = c("/ergebnisse", "?language", "?displayMode", "?fontSize", "?contrast"))
 
-MyDATA <- LoadHTMLFiles("gepris.dfg.de-281459", type = "vector")
-gepris <- ContentScraper(Url = c(as.vector(INDEX$Url))[1:5], 
-                         XpathPatterns = c("/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/h3",
-                                           "/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/div[4]/span[2]",
-                                           "/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/div[1]/span[2]",
-                                           "/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/div[2]/span[2]"),
-#                         CssPatterns = c(".details > h3:nth-child(1)",
- #                                        ".details > div:nth-child(3) > span:nth-child(2)"), zeitraum
-                         PatternsName = c("Feld 1",
-                                          "Feld 2",
-                                          "Feld 3",
-                                          "Feld 4"),
-                         ManyPerPattern = TRUE)
-
-
-gepris <- 
-  gsub("[\r\n]", "", gepris)
-  
-              
-         PatternsNames = c("Titel",
-                           "Antragsteller",
-                           "Fachliche_Zuordnung",
-                           "Förderzeitraum",
-                           "Projektnummer",
-                           "Beschreibung",
-                           "DFG_Verfahren",
-                           "Verbundprojekt")
-         )
+#MyDATA <- LoadHTMLFiles("gepris.dfg.de-111357", type = "list")
+DATA <- ContentScraper(Url = c(as.vector(INDEX$Url)),
+                       XpathPatterns = c("/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/h3",
+                                         "//*[@id='projekttext']",
+                                         "//*[@class='name']",
+                                         "//*[@class='value']"),
+                       ManyPerPattern = TRUE)
 gepris <- data.frame(do.call("rbind", DATA))
 
-Rcrawler("http://www.biodiversity.de", no_cores = 4, no_conn = 4, 
-         ignoreUrlParams = c("image", "icon", "logo", "png", "jpg", "jpeg", "user", "file"), 
-         NetworkData = TRUE, NetwExtLinks =TRUE,  statslinks = TRUE)
-library(igraph)
-network <- graph.data.frame(NetwEdges, directed=T)
-lyout <- layout.fruchterman.reingold(network)
-E(network)$edge.col[E(network)$Type == 1] <- "green"
-E(network)$edge.col[E(network)$Type == 2] <- "light blue"
-plot(network, vertex.size = 1, vertex.color = "forest green", 
-     vertex.label = NA, vertex.label.family = "Calibri", 
-     vertex.label.cex = NA, vertex.frame.color = NA, vertex.label.color = NA,
-     edge.arrow.size = 0.1, edge.color = E(network)$edge.col,
-     layout = lyout)
+column_names <- unlist(lapply(DATA, `[[`, 3))
+column_names <- gsub("[\r\n\t]", "", column_names)
+content <- unlist(lapply(DATA, `[[`, 4))
+content <- gsub("[\r\n\t]", "", content)
+
+projno <- c(1:length(DATA))
+contentno <- vector()
+for(p in projno){
+  contentno <- c(contentno, length(DATA[[p]][[3]]))}
+max(contentno)
+
+add_columns <- c(ncol(gepris)+1:length(unique(column_names)))
+gepris[,add_columns] <- NA
+names(gepris) <- c("titel", "descr", "name", "content", unique(column_names))
+
+for(n in projno){
+  name <- DATA[[n]][[3]]
+  name <- gsub("[\r\n\t]", "", name)
+  value <- DATA[[n]][[4]]
+  value <- gsub("[\r\n\t]", "", value)
+  check <- c(1:length(DATA[[n]][[3]]))
+  for(c in check){
+    for(a in add_columns){
+    if(name[c] == names(gepris[a])){gepris[n,a] <- value[c]}
+    }
+  }
+}
+
+gepris <- gepris[,-c(3,4)]
+
+gepris$titel <- as.character(gepris$titel)
+gepris$descr <- as.character(gepris$descr)
+
+write.csv2(gepris, file = "gepris.csv")
 ```
 
 
