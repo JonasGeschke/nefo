@@ -204,6 +204,21 @@ Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=project&findButton=F
 
 Suche <- "http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=historyCall&hitsPerPage=10000&index=0&keywords_criterion=biodiv*+OR+%26quot%3Bbiologische*+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B&nurProjekteMitAB=false&orderBy=name&task=doSearchSimple"
 
+INDEX <- data.frame("Id"=NA, "Url"=NA, "Stats"=NA, "Level"=NA, "OUT"=NA, "IN"=NA, "Http Resp"=NA, "Content Type"=NA, "Encoding"=NA, "Accuracy"=NA)
+for(a in letters){
+  Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=historyCall&hitsPerPage=500000&index=0&keywords_criterion=", a, "*&task=doSearchSimple", sep = "")
+  INDEX <- rbind(INDEX,
+                 Rcrawler(Suche, no_cores = 4, no_conn = 4,
+                          dataUrlfilter = c("/gepris/projekt/"),
+                          crawlUrlfilter = c("/gepris/projekt/"),
+                          ignoreUrlParams = c("/ergebnisse", 
+                                              "?language", 
+                                              "?displayMode", 
+                                              "?fontSize", 
+                                              "?contrast"))
+                 )
+}
+
 Rcrawler(Suche, no_cores = 4, no_conn = 4, #MaxDepth = 1,
          dataUrlfilter = c("/gepris/projekt/"),
          crawlUrlfilter = c("/gepris/projekt/"),
