@@ -208,7 +208,7 @@ INDEX <- data.frame("Id"=NA, "Url"=NA, "Stats"=NA, "Level"=NA, "OUT"=NA, "IN"=NA
 for(a in letters){
   Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=historyCall&hitsPerPage=500000&index=0&keywords_criterion=", a, "*&task=doSearchSimple", sep = "")
   INDEX <- rbind(INDEX,
-                 Rcrawler(Suche, no_cores = 4, no_conn = 4,
+                 Rcrawler(Suche, no_cores = 2, no_conn = 2,
                           dataUrlfilter = c("/gepris/projekt/"),
                           crawlUrlfilter = c("/gepris/projekt/"),
                           ignoreUrlParams = c("/ergebnisse", 
@@ -219,7 +219,7 @@ for(a in letters){
                  )
 }
 
-Rcrawler(Suche, no_cores = 4, no_conn = 4, #MaxDepth = 1,
+Rcrawler(Suche, no_cores = 2, no_conn = 2, #MaxDepth = 1,
          dataUrlfilter = c("/gepris/projekt/"),
          crawlUrlfilter = c("/gepris/projekt/"),
          ignoreUrlParams = c("/ergebnisse", "?language", "?displayMode", "?fontSize", "?contrast"))
