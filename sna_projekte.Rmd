@@ -194,7 +194,7 @@ return(Gdata_new)
 ```
 
 
-# Analyse
+# Rohdaten
 
 ```{r Crawling GEPRIS, eval=FALSE}
 library(Rcrawler)
@@ -225,59 +225,75 @@ Rcrawler(Suche, no_cores = 2, no_conn = 2, #MaxDepth = 1,
          dataUrlfilter = c("/gepris/projekt/"),
          crawlUrlfilter = c("/gepris/projekt/"),
          ignoreUrlParams = c("/ergebnisse", "?language", "?displayMode", "?fontSize", "?contrast"))
+```
 
-MyDATA <- LoadHTMLFiles("gepris.dfg.de-111357", type = "list")
-MyDATA[[1]]
-MyData <- gsub("[\r\n\t]", "", MyData)
+```{r Scraping GEPRIS, eval=FALSE}
+library(Rcrawler)
 
+files <- c(1:length(list.files(path = "U:/Netzwerkanalyse_Projekte/R/gepris.dfg.de-111357")))
 
-DATA <- ContentScraper(HTmlText = MyDATA[[1]], # Url = c(as.vector(INDEX$Url)),
+DATA <- list()
+for(a in files){
+  DATA[[a]] <- ContentScraper(HTmlText = paste("U:/Netzwerkanalyse_Projekte/R/gepris.dfg.de-111357/", a," .html", sep=""), 
+                       # MyDATA[[1]], # Url = c(as.vector(INDEX$Url)),
                        XpathPatterns = c("/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/h3",
                                          "//*[@id='projekttext']",
                                          "//*[@class='name']",
                                          "//*[@class='value']"),
                        ManyPerPattern = TRUE,
-                       encode = )
+                       encod = "UTF-8")
+}
 gepris <- data.frame(do.call("rbind", DATA))
 
+title <- unlist(lapply(DATA, `[[`, 1))
+title <- gsub("[\r\n\t]", "", title)
+title <- trimws(title, which = c("both"))
+title <- trimws(gsub("\\s+", " ", title))
+gepris$X1 <- title
+descr <- unlist(lapply(DATA, `[[`, 2))
+descr <- gsub("[\r\n\t]", "", descr)
+descr <- trimws(descr, which = c("both"))
+descr <- trimws(gsub("\\s+", " ", descr))
+gepris$X2 <- descr
 column_names <- unlist(lapply(DATA, `[[`, 3))
 column_names <- gsub("[\r\n\t]", "", column_names)
-content <- unlist(lapply(DATA, `[[`, 4))
-content <- gsub("[\r\n\t]", "", content)
+column_names <- trimws(column_names, which = c("both"))
+column_names <- trimws(gsub("\\s+", " ", column_names))
 
-projno <- c(1:length(DATA))
 contentno <- vector()
-for(p in projno){
+for(p in files){
   contentno <- c(contentno, length(DATA[[p]][[3]]))}
 max(contentno)
 
 add_columns <- c(ncol(gepris)+1:length(unique(column_names)))
 gepris[,add_columns] <- NA
-names(gepris) <- c("titel", "descr", "name", "content", unique(column_names))
+names(gepris) <- c("titel", "descr", "name", "value", unique(column_names))
 
-for(n in projno){
+for(n in files){
   name <- DATA[[n]][[3]]
   name <- gsub("[\r\n\t]", "", name)
+  name <- trimws(name, which = c("both"))
+  name <- trimws(gsub("\\s+", " ", name))
   value <- DATA[[n]][[4]]
   value <- gsub("[\r\n\t]", "", value)
+  value <- trimws(value, which = c("both"))
+  value <- trimws(gsub("\\s+", " ", value))
   check <- c(1:length(DATA[[n]][[3]]))
   for(c in check){
     for(a in add_columns){
-    if(name[c] == names(gepris[a])){gepris[n,a] <- value[c]}
+    if(names(gepris[a]) == name[c]){gepris[n,a] <- value[c]}
     }
   }
 }
 
 gepris <- gepris[,-c(3,4)]
 
-gepris$titel <- as.character(gepris$titel)
-gepris$descr <- as.character(gepris$descr)
+write.csv2(, file = "gepris.csv")
 
-write.csv2(gepris, file = "gepris.csv")
+rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value)
 ```
 
-
-```{r Laden der Rohdaten und Vorbereitung der Daten: PROJEKTE, eval=FALSE}
+```{r Laden der Rohdaten und Vorbereitung der Daten: Ministerien, eval=FALSE}
 library(xlsx)
 ## Load raw data
 #Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
@@ -300,13 +316,13 @@ projects <- projects[order(projects$Ressort, projects$Laufzeit.von, projects$Lau
 
 # Korrektur der Fraunhofer-Gesellschaft
 #projects <- subset(projects, projects$Zuwendungsempfänger == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.")
-nrow <- c(1:nrow(projects))
-for(n in nrow){
-  if(projects[n,9] == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V."){
-    projects[n,9] <- projects[n,11]
-  }
-}
-rm(nrow, n)
+#nrow <- c(1:nrow(projects))
+#for(n in nrow){
+#  if(projects[n,9] == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V."){
+#    projects[n,9] <- projects[n,11]
+#  }
+#}
+#rm(nrow, n)
 
 abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 abbr <- read.csv2("kuerzel_Donnerstag.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
@@ -324,6 +340,18 @@ for(i in nrow_kuerzel){
 }
 rm(nrow_kuerzel, nrow_abbr)
 #write.csv2(kuerzel, file = "kuerzel.csv")
+```
+
+
+# Vorbereitung der Daten
+
+```{r transform gepris, eval=FALSE}
+gepris_df <- projects
+gepris_df <- gepris_df[-c(1:nrow(gepris_df)),]
+
+
+
+
 ```
 
 ```{r Analyse des Leistungsplans, eval=FALSE}
