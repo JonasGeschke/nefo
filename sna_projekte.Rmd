@@ -288,7 +288,7 @@ for(n in files){
 
 gepris <- gepris[,-c(3,4)]
 
-write.csv2(, file = "gepris.csv")
+#write.csv2(gepris, file = "gepris.csv")
 
 rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value)
 ```
@@ -349,8 +349,19 @@ rm(nrow_kuerzel, nrow_abbr)
 gepris_df <- projects
 gepris_df <- gepris_df[-c(1:nrow(gepris_df)),]
 
+zeilen <- c(1:nrow(gepris))
+spalten <- c(1:ncol(gepris))
 
+gepris_df[zeilen,] <- NA
 
+gepris_df$Ressort <- "DFG"
+gepris_df$Thema <- gepris$titel
+gepris_df$Verbundprojekt <- gepris$`Teilprojekt zu`
+
+laufzeit <- data.frame("von"=as.character(NA), "bis"=as.character(NA), "förderung"=as.character(gepris$Förderung),
+                       stringsAsFactors=FALSE)
+str(laufzeit)
+laufzeit[which("in" %in% laufzeit$förderung)]
 
 ```
 
