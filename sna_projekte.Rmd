@@ -36,6 +36,7 @@ http://kateto.net/network-visualization
 # setwd("")
 
 #setwd("/Volumes/NO NAME/MfN/Netzwerkanalyse_Projekte/R") # Stick
+#setwd("~/HiDrive/users/dojo-drive-jonas/MfN/R") # HiDrive
 setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R") # Buero
 ```
 
@@ -232,18 +233,21 @@ Rcrawler(Suche, no_cores = 2, no_conn = 2, #MaxDepth = 1,
 ```{r Scraping GEPRIS, eval=FALSE}
 library(Rcrawler)
 
-files <- c(1:length(list.files(path = "U:/Netzwerkanalyse_Projekte/R/gepris.dfg.de-111357")))
+files <- c(1:length(list.files(path = paste(getwd(), 
+                                            "/gepris.dfg.de-111357", 
+                                            sep=""))))
 
 DATA <- list()
 for(a in files){
-  DATA[[a]] <- ContentScraper(HTmlText = paste("U:/Netzwerkanalyse_Projekte/R/gepris.dfg.de-111357/", a," .html", sep=""), 
-                       # MyDATA[[1]], # Url = c(as.vector(INDEX$Url)),
-                       XpathPatterns = c("/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/h3",
-                                         "//*[@id='projekttext']",
-                                         "//*[@class='name']",
-                                         "//*[@class='value']"),
-                       ManyPerPattern = TRUE,
-                       encod = "UTF-8")
+  DATA[[a]] <- ContentScraper(HTmlText = paste(paste(getwd(), 
+                                            "/gepris.dfg.de-111357/", 
+                                            sep=""), a," .html", sep=""),
+                              XpathPatterns = c("/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/h3",
+                                                "//*[@id='projekttext']",
+                                                "//*[@class='name']",
+                                                "//*[@class='value']"),
+                              ManyPerPattern = TRUE,
+                              encod = "UTF-8")
 }
 gepris <- data.frame(do.call("rbind", DATA))
 
@@ -295,7 +299,7 @@ Raw_gepris <- gepris[,-c(3,4)]
 rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value, gepris)
 ```
 
-```{r Laden der Rohdaten und Vorbereitung der Daten: Ministerien, eval=FALSE}
+```{r Laden  und Vorbereitung der Ministeriendatenbank, eval=FALSE}
 library(xlsx)
 ## Load raw data
 #Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
@@ -303,7 +307,7 @@ library(xlsx)
 #Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 #Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 
-Raw_projects_gesamt <- read.csv2("Daten/Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
+Raw_projects_gesamt <- read.csv2("Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
 
 #projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
 projects <- Raw_projects_gesamt
@@ -325,7 +329,9 @@ projects <- projects[order(projects$Ressort, projects$Laufzeit.von, projects$Lau
 #  }
 #}
 #rm(nrow, n)
+```
 
+```{r Abkürzungen, eval=FALSE}
 abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 abbr <- read.csv2("kuerzel_Donnerstag.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 abbr <- abbr[,-1]
@@ -360,10 +366,10 @@ gepris$Ressort <- "DFG"
 gepris$Thema <- Raw_gepris$titel
 gepris$Verbundprojekt <- Raw_gepris$`Teilprojekt zu`
 
-laufzeit <- data.frame("von"=as.character(NA), "bis"=as.character(NA), "förderung"=as.character(Raw_gepris$Förderung),
-                       stringsAsFactors=FALSE)
-str(laufzeit)
-laufzeit[which("in" %in% laufzeit$förderung)]
+laufzeit <- data.frame("von" = as.character(NA), 
+                       "bis" = as.character(NA),
+                       "förderung" = as.character(Raw_gepris$Förderung),
+                       stringsAsFactors = FALSE)
 
 laufzeit$von <- readr::parse_number(laufzeit$förderung)
 for(r in zeilen){
