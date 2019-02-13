@@ -67,6 +67,8 @@ if("lubridate" %in% rownames(installed.packages())   == FALSE){
   install.packages("lubridate")}
 if("Rcrawler" %in% rownames(installed.packages())   == FALSE){
   install.packages("Rcrawler")}
+if("readr" %in% rownames(installed.packages())   == FALSE){
+  install.packages("readr")}
 ```
 
 ```{r set additional functions, eval=FALSE}
@@ -286,11 +288,11 @@ for(n in files){
   }
 }
 
-gepris <- gepris[,-c(3,4)]
+Raw_gepris <- gepris[,-c(3,4)]
 
 #write.csv2(gepris, file = "gepris.csv")
 
-rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value)
+rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value, gepris)
 ```
 
 ```{r Laden der Rohdaten und Vorbereitung der Daten: Ministerien, eval=FALSE}
@@ -346,22 +348,32 @@ rm(nrow_kuerzel, nrow_abbr)
 # Vorbereitung der Daten
 
 ```{r transform gepris, eval=FALSE}
-gepris_df <- projects
-gepris_df <- gepris_df[-c(1:nrow(gepris_df)),]
+gepris <- projects
+gepris <- gepris[-c(1:nrow(gepris)),]
 
-zeilen <- c(1:nrow(gepris))
-spalten <- c(1:ncol(gepris))
+zeilen <- c(1:nrow(Raw_gepris))
+spalten <- c(1:ncol(Raw_gepris))
 
-gepris_df[zeilen,] <- NA
+gepris[zeilen,] <- NA
 
-gepris_df$Ressort <- "DFG"
-gepris_df$Thema <- gepris$titel
-gepris_df$Verbundprojekt <- gepris$`Teilprojekt zu`
+gepris$Ressort <- "DFG"
+gepris$Thema <- Raw_gepris$titel
+gepris$Verbundprojekt <- Raw_gepris$`Teilprojekt zu`
 
-laufzeit <- data.frame("von"=as.character(NA), "bis"=as.character(NA), "förderung"=as.character(gepris$Förderung),
+laufzeit <- data.frame("von"=as.character(NA), "bis"=as.character(NA), "förderung"=as.character(Raw_gepris$Förderung),
                        stringsAsFactors=FALSE)
 str(laufzeit)
 laufzeit[which("in" %in% laufzeit$förderung)]
+
+laufzeit$von <- readr::parse_number(laufzeit$förderung)
+for(r in zeilen){
+  if(grepl("in", laufzeit[r,3])){laufzeit[r,2] <- laufzeit[r,1]}
+  if(grepl("seit", laufzeit[r,3])){laufzeit[r,2] <- format(Sys.Date(), "%Y")}
+}
+
+tidyr::extract_numeric(laufzeit$förderung)
+
+laufzeit$bis <- as.numeric(laufzeit$bis)
 
 ```
 
