@@ -70,6 +70,10 @@ if("Rcrawler" %in% rownames(installed.packages())   == FALSE){
   install.packages("Rcrawler")}
 if("readr" %in% rownames(installed.packages())   == FALSE){
   install.packages("readr")}
+if("shiny" %in% rownames(installed.packages())   == FALSE){
+  install.packages("shiny")}
+if("shinythemes" %in% rownames(installed.packages())   == FALSE){
+  install.packages("shinythemes")}
 ```
 
 ```{r set additional functions, eval=FALSE}
@@ -103,7 +107,56 @@ if(identical(which(duplicated(biodiv)), duplicated_test) == FALSE){
   biodiv <- biodiv[-which(duplicated(biodiv)),]}
 rm(duplicated_test)
 
-inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
+#allocate_ids cut here
+
+return(biodiv)
+}
+
+subset_förderzeitraum <- function(years = c(years), dataset = Gdata){
+
+Gdata <- dataset
+Gdata <- rbind(Gdata, gepris)
+
+Gdata$Förderjahre <- NA
+Gdata <- Gdata[,c(1:2,17,3:16)]
+
+jahre <- c(as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")) - 
+             as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")))
+nrow <- c(1:nrow(Gdata))
+
+for(n in nrow){
+  p <- 1
+  period <- c(seq(from = as.numeric(format(as.Date(Gdata[n,4], "%d.%m.%Y"), "%Y")), 
+                        length.out = (jahre[n]+1)))
+  period_num <- c(1:length(period))
+  Gdata[n,3] <- paste(period, collapse = "_")
+}
+rm(jahre, nrow, n, p, period, period_num)
+
+if(years == "all"){
+  Gdata_new <- Gdata}
+else{
+Gdata_new <- Gdata[-c(1:nrow(Gdata)),]
+years_num <- c(1:length(years))
+for(y in years_num){
+Gdata_new <- rbind(Gdata_new,
+                   Gdata[grep(as.character(years[y]), Gdata$Förderjahre),])
+}
+rm(y, years_num, Gdata)
+
+duplicated_test <- integer(0)
+if(identical(which(duplicated(Gdata_new)), duplicated_test) == FALSE){
+  Gdata_new <- Gdata_new[-which(duplicated(Gdata_new)),]}
+rm(duplicated_test)
+}
+
+return(Gdata_new)
+}
+
+allocate_ids <- function(dataset = Gdata){
+  biodiv <- dataset
+  
+  inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
                       id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
                       stringsAsFactors = FALSE)
 nrow <- c(1:nrow(biodiv))
@@ -154,46 +207,6 @@ biodiv <- biodiv[,-c(17,18)]
 
 return(biodiv)
 }
-
-subset_förderzeitraum <- function(years = c(years), dataset = Gdata){
-
-Gdata <- dataset
-
-Gdata$Förderjahre <- NA
-Gdata <- Gdata[,c(1:2,17,3:16)]
-
-jahre <- c(as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")) - 
-             as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")))
-nrow <- c(1:nrow(Gdata))
-
-for(n in nrow){
-  p <- 1
-  period <- c(seq(from = as.numeric(format(as.Date(Gdata[n,4], "%d.%m.%Y"), "%Y")), 
-                        length.out = (jahre[n]+1)))
-  period_num <- c(1:length(period))
-  Gdata[n,3] <- paste(period, collapse = "_")
-}
-rm(jahre, nrow, n, p, period, period_num)
-
-if(years == "all"){
-  Gdata_new <- Gdata}
-else{
-Gdata_new <- Gdata[-c(1:nrow(Gdata)),]
-years_num <- c(1:length(years))
-for(y in years_num){
-Gdata_new <- rbind(Gdata_new,
-                   Gdata[grep(as.character(years[y]), Gdata$Förderjahre),])
-}
-rm(y, years_num, Gdata)
-
-duplicated_test <- integer(0)
-if(identical(which(duplicated(Gdata_new)), duplicated_test) == FALSE){
-  Gdata_new <- Gdata_new[-which(duplicated(Gdata_new)),]}
-rm(duplicated_test)
-}
-
-return(Gdata_new)
-}
 ```
 
 
@@ -212,7 +225,7 @@ INDEX <- data.frame("Id"=NA, "Url"=NA, "Stats"=NA, "Level"=NA, "OUT"=NA, "IN"=NA
 for(a in letters){
   Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=projekt&findButton=historyCall&hitsPerPage=500000&index=0&keywords_criterion=", a, "*&task=doSearchSimple", sep = "")
   INDEX <- rbind(INDEX,
-                 Rcrawler(Suche, no_cores = 2, no_conn = 2,
+                 Rcrawler(Suche, no_cores = 1, no_conn = 1,
                           dataUrlfilter = c("/gepris/projekt/"),
                           crawlUrlfilter = c("/gepris/projekt/"),
                           ignoreUrlParams = c("/ergebnisse", 
@@ -299,7 +312,7 @@ Raw_gepris <- gepris[,-c(3,4)]
 rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value, gepris)
 ```
 
-```{r Laden  und Vorbereitung der Ministeriendatenbank, eval=FALSE}
+```{r Laden und Vorbereitung des Förderkatalogs, eval=FALSE}
 library(xlsx)
 ## Load raw data
 #Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
@@ -362,25 +375,53 @@ spalten <- c(1:ncol(Raw_gepris))
 
 gepris[zeilen,] <- NA
 
-gepris$Ressort <- "DFG"
-gepris$Thema <- Raw_gepris$titel
-gepris$Verbundprojekt <- Raw_gepris$`Teilprojekt zu`
+gepris[,1] <- "DFG" # Ressort
+gepris[,6] <- Raw_gepris[,1] # Thema
+gepris[,7] <- Raw_gepris[,13] # Verbundprojekt
+gepris[,13] <- Raw_gepris[,6] # Förderprofil
+gepris[,14] <- Raw_gepris[,3] # Leistungsplansystematik
 
 laufzeit <- data.frame("von" = as.character(NA), 
                        "bis" = as.character(NA),
-                       "förderung" = as.character(Raw_gepris$Förderung),
+                       "förderung" = as.character(Raw_gepris[,4]), # Förderung
                        stringsAsFactors = FALSE)
-
-laufzeit$von <- readr::parse_number(laufzeit$förderung)
+laufzeit$von <- readr::parse_number(laufzeit[,3])
 for(r in zeilen){
-  if(grepl("in", laufzeit[r,3])){laufzeit[r,2] <- laufzeit[r,1]}
-  if(grepl("seit", laufzeit[r,3])){laufzeit[r,2] <- format(Sys.Date(), "%Y")}
+  if(grepl("in", laufzeit[r,3])){
+    laufzeit[r,2] <- laufzeit[r,1]}
+  if(grepl("seit", laufzeit[r,3])){
+    laufzeit[r,2] <- format(Sys.Date(), "%Y")}
+  if(grepl("bis", laufzeit[r,3])){
+    laufzeit[r,2] <- substr(laufzeit[r,3], 24, 27)}
 }
+gepris[,3] <- laufzeit[,1] # von
+gepris[,4] <- laufzeit[,2] # bis
+rm(laufzeit,r)
 
-tidyr::extract_numeric(laufzeit$förderung)
+antragsteller <- data.frame("antragsteller" = as.character(NA), 
+                       "title" = as.character(Raw_gepris[,1]),
+                       stringsAsFactors = FALSE)
+antragsteller[,1] <- paste(Raw_gepris[,9], # Antragstellende Institution
+                           Raw_gepris[,11], # Antragsteller
+                           Raw_gepris[,12], # Antragstellerin
+                           Raw_gepris[,20], # Antragsteller
+                           Raw_gepris[,24], # Antragstellerinnen/Antragsteller
+                           Raw_gepris[,25], # Mitanstragstellerin
+                           Raw_gepris[,36], # Mitantragstellende Institution
+                           Raw_gepris[,41], # Mitantragsteller
+                           Raw_gepris[,42], # Mitantragstellerinnen/Mitantragsteller
+                           Raw_gepris[,49], # Antragstellerinnen
+                           sep = " _ ")
+antragsteller[,1] <- gsub("NA _ ", "", antragsteller[,1])
+antragsteller[,1] <- gsub("_ NA", "", antragsteller[,1])
+gepris[,9] <- antragsteller[,1]
+rm(antragsteller)
 
-laufzeit$bis <- as.numeric(laufzeit$bis)
+#gepris <- gepris[-which(gepris[,9] == "NA"),]
+test <- gepris[which(grepl("[0-9]:", substr(gepris[,6], 1, 10))),]
+length(unique(gepris$Verbundprojekt))
 
+#### Antragstellende Institution filtern
 ```
 
 ```{r Analyse des Leistungsplans, eval=FALSE}
@@ -453,26 +494,25 @@ NAs <- lplan_na$word
 raus <- leistungsplan$Klartext.Leistungsplansystematik
 ```
 
-```{r subset by keywords, eval=FALSE}
-biodiv <- subset_projects(keywords = c("biodiv"))
+```{r Förderkatalog subset by keywords, eval=FALSE}
+#biodiv <- subset_projects(keywords = c("biodiv"))
 biodivbiolvielfalt <- subset_projects(keywords = c("biodiv", 
                                                    "biologische vielfalt", "biologischen vielfalt",
                                                    "biological diversity"))
 
-monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "biologischen vielfalt",
+#monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "biologischen vielfalt",
                                            "biological diversity", "monitoring"))
 
 ```
 
-```{r Auswahl Datensatz und Förderzeitraum, eval=FALSE}
+```{r Auswahl Datensatz (+gepris) und Förderzeitraum, eval=FALSE}
 Gdata <- subset_förderzeitraum(years = c("all"), dataset = biodivbiolvielfalt)
-Gdata <- subset_förderzeitraum(years = c(2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018), 
+Gdata <- subset_förderzeitraum(years = c(2007, 2008, 2009, 2010, 2011, 
+                                         2012, 2013, 2014, 2015, 2016, 
+                                         2017, 2018), 
                                dataset = biodivbiolvielfalt)
 
-Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring)
-Gdata <- Gdata[-which(Gdata$Klartext.Leistungsplansystematik %in% NAs),] #c("Monitoring")),]#, 
-                                                                    "Mensch-Technik-Interaktion für den demografischen Wandel (abgeschlossen)")),] # medical images
-
+#Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring)
 ```
 
 
@@ -507,6 +547,8 @@ Gdata_FN$`GBIF-D` <- as.numeric(Gdata_FN$`GBIF-D`) #raus
 # Netzwerkanalyse
 
 ```{r Vorbereitung, eval=FALSE}
+Gdata <- allocate_ids(Gdata)
+
 inst <- data.frame(id = Gdata$inst_id,
                    abbr = NA,
                    name = Gdata$Zuwendungsempfänger,
@@ -549,8 +591,7 @@ links_dupl <- links[c("from", "to")]
 links <- links[-which(duplicated(links_dupl)),]
 rm(links_dupl)
 
-library(igraph)
-ntw <- graph_from_data_frame(d = links, vertices = nodes, directed = F)
+ntw <- igraph::graph_from_data_frame(d = links, vertices = nodes, directed = F)
 ```
 
 ```{r Visualisierung, eval=FALSE}
