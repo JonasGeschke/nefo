@@ -225,7 +225,7 @@ return(biodiv)
 
 # Rohdaten
 
-```{r Crawling GEPRIS, eval=FALSE}
+```{r Crawling GEPRIS - Projekte, eval=FALSE}
 library(Rcrawler)
 
 keywords <- "biodiv*+OR+%26quot%3Bbiologische*+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B" # * = und Anhang | +OR+ = OR | + = Leerzeichen | %26quot%3B = Anführungsstriche
@@ -256,7 +256,7 @@ Rcrawler(Suche, no_cores = 2, no_conn = 2, #MaxDepth = 1,
          ignoreUrlParams = c("/ergebnisse", "?language", "?displayMode", "?fontSize", "?contrast"))
 ```
 
-```{r Scraping GEPRIS, eval=FALSE}
+```{r Scraping GEPRIS - Projekte, eval=FALSE}
 library(Rcrawler)
 
 files <- c(1:length(list.files(path = paste(getwd(), 
