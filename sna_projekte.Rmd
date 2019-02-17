@@ -85,9 +85,9 @@ subset_projects <- function(keywords = c(keywords), database = projects){
 
 projects <- database
 projects_filter <- projects
-projects_filter$filter <- tolower(paste(projects_filter$Thema,
-                                        projects_filter$Verbundprojekt,
-                                        projects_filter$Klartext.Leistungsplansystematik,
+projects_filter$filter <- tolower(paste(projects_filter$projekt,
+                                        projects_filter$verbundprojekt,
+                                        projects_filter$kategorie,
                                         sep = "_"))
 
 biodiv <- projects_filter[-c(1:nrow(projects_filter)),]
@@ -98,10 +98,10 @@ biodiv <- rbind(biodiv,
 }
 rm(projects_filter, k, keywords_num)
 
-biodiv <- biodiv[order(biodiv$Ressort, 
-                       strptime(biodiv$Laufzeit.von,format="%d.%m.%Y"), 
-                       biodiv$Verbundprojekt, 
-                       biodiv$Thema),]
+biodiv <- biodiv[order(biodiv$foerderer, 
+                       strptime(biodiv$von,format="%d.%m.%Y"), 
+                       biodiv$verbundprojekt, 
+                       biodiv$projekt),]
 duplicated_test <- integer(0)
 if(identical(which(duplicated(biodiv)), duplicated_test) == FALSE){
   biodiv <- biodiv[-which(duplicated(biodiv)),]}
@@ -109,19 +109,26 @@ rm(duplicated_test)
 
 #allocate_ids cut here
 
+biodiv <- biodiv[,-c(17)]
+
 return(biodiv)
 }
 
-subset_förderzeitraum <- function(years = c(years), dataset = Gdata){
+subset_foerderzeitraum <- function(years = c(years), foerderkatalog = Gdata){
 
-Gdata <- dataset
+Gdata <- foerderkatalog
 Gdata <- rbind(Gdata, gepris)
 
-Gdata$Förderjahre <- NA
+Gdata$foerderjahre <- NA
 Gdata <- Gdata[,c(1:2,17,3:16)]
 
-jahre <- c(as.numeric(format(as.Date(Gdata$Laufzeit.bis, "%d.%m.%Y"), "%Y")) - 
-             as.numeric(format(as.Date(Gdata$Laufzeit.von, "%d.%m.%Y"), "%Y")))
+Gdata$von[(nrow(foerderkatalog)+1):nrow(Gdata)] <- 
+  paste("01.01.", Gdata$von[(nrow(foerderkatalog)+1):nrow(Gdata)], sep="")
+Gdata$bis[(nrow(foerderkatalog)+1):nrow(Gdata)] <- 
+  paste("01.01.", Gdata$bis[(nrow(foerderkatalog)+1):nrow(Gdata)], sep="")
+
+jahre <- c(as.numeric(format(as.Date(Gdata$bis, "%d.%m.%Y"), "%Y")) - 
+             as.numeric(format(as.Date(Gdata$von, "%d.%m.%Y"), "%Y")))
 nrow <- c(1:nrow(Gdata))
 
 for(n in nrow){
@@ -140,7 +147,7 @@ Gdata_new <- Gdata[-c(1:nrow(Gdata)),]
 years_num <- c(1:length(years))
 for(y in years_num){
 Gdata_new <- rbind(Gdata_new,
-                   Gdata[grep(as.character(years[y]), Gdata$Förderjahre),])
+                   Gdata[grep(as.character(years[y]), Gdata$foerderjahre),])
 }
 rm(y, years_num, Gdata)
 
@@ -150,14 +157,16 @@ if(identical(which(duplicated(Gdata_new)), duplicated_test) == FALSE){
 rm(duplicated_test)
 }
 
+Gdata_new <- Gdata_new[,-3]
+
 return(Gdata_new)
 }
 
 allocate_ids <- function(dataset = Gdata){
   biodiv <- dataset
   
-  inst_ids <- data.frame(unique = unique(biodiv$Zuwendungsempfänger),
-                      id = as.character(paste("inst", c(1:length(unique(biodiv$Zuwendungsempfänger))), sep = "")), 
+  inst_ids <- data.frame(unique = unique(biodiv$institution),
+                      id = as.character(paste("inst", c(1:length(unique(biodiv$institution))), sep = "")), 
                       stringsAsFactors = FALSE)
 nrow <- c(1:nrow(biodiv))
 nrows <- c(1:nrow(inst_ids))
@@ -169,10 +178,14 @@ for(n in nrow){
 }}
 rm(inst_ids, nrow, nrows, n, s)
 
-biodiv_einzeln <- subset(biodiv, is.na(biodiv$Verbundprojekt))
-biodiv_verbund <- subset(biodiv, !is.na(biodiv$Verbundprojekt))
-biodiv_einzeln$unique <- paste(biodiv_einzeln$Laufzeit.von, biodiv_einzeln$Thema, sep = "_")
-biodiv_verbund$unique <- paste(biodiv_verbund$Laufzeit.von, biodiv_verbund$Verbundprojekt, sep = "_")
+biodiv_einzeln <- subset(biodiv, is.na(biodiv$verbundprojekt))
+biodiv_verbund <- subset(biodiv, !is.na(biodiv$verbundprojekt))
+biodiv_einzeln$unique <- paste(biodiv_einzeln$von, 
+                               biodiv_einzeln$projekt, 
+                               sep = "_")
+biodiv_verbund$unique <- paste(biodiv_verbund$von, 
+                               biodiv_verbund$verbundprojekt, 
+                               sep = "_")
 proj_id <- data.frame(unique = unique(biodiv_verbund$unique),
                       id = as.character(paste("proj", c(1:length(unique(biodiv_verbund$unique))), sep = "")), 
                       stringsAsFactors = FALSE)
@@ -180,7 +193,7 @@ nrow <- c(1:nrow(biodiv_verbund))
 nrows <- c(1:nrow(proj_id))
 for(n in nrow){
   for (s in nrows){
-    if(biodiv_verbund[n,18] == proj_id[s,1]){
+    if(biodiv_verbund[n,17] == proj_id[s,1]){
        biodiv_verbund[n,5] <- proj_id[s,2]}
     else{}
 }}
@@ -196,14 +209,14 @@ nrow <- c(1:nrow(biodiv_einzeln))
 nrows <- c(1:nrow(proj_id))
 for(n in nrow){
   for (s in nrows){
-    if(biodiv_einzeln[n,18] == proj_id[s,1]){
+    if(biodiv_einzeln[n,17] == proj_id[s,1]){
        biodiv_einzeln[n,5] <- proj_id[s,2]}
     else{}
 }}
 rm(proj_id, nrow, nrows, n, s)
 biodiv <- rbind(biodiv_verbund, biodiv_einzeln)
 rm(biodiv_einzeln, biodiv_verbund)
-biodiv <- biodiv[,-c(17,18)]
+biodiv <- biodiv[,-c(17)]
 
 return(biodiv)
 }
@@ -331,10 +344,15 @@ projects$inst_id <- NA
 projects$proj_id <- NA
 projects <- projects[,c(1,2,10,11,16,7,14,15,3,4,5,6,13,9,8,12)]
 
-projects <- projects[order(projects$Ressort, projects$Laufzeit.von, projects$Laufzeit.bis),]
+names(projects) <- c("foerderer", "pt", "von", "bis", "proj_id", "projekt",
+                     "verbundprojekt", "inst_id", "institution",
+                     "land", "durchfuehrung", "durchfuehrung_land",
+                     "topic", "kategorie", "kategorie_num", "budget")
+
+projects <- projects[order(projects$foerderer, projects$von, projects$bis),]
 
 # Korrektur der Fraunhofer-Gesellschaft
-#projects <- subset(projects, projects$Zuwendungsempfänger == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.")
+#projects <- subset(projects, projects$institution == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.")
 #nrow <- c(1:nrow(projects))
 #for(n in nrow){
 #  if(projects[n,9] == "Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V."){
@@ -349,7 +367,7 @@ abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, string
 abbr <- read.csv2("kuerzel_Donnerstag.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 abbr <- abbr[,-1]
 
-kuerzel <- data.frame(abbr = NA, inst = unique(Gdata$Zuwendungsempfänger))
+kuerzel <- data.frame(abbr = NA, inst = unique(Gdata$institution))
 nrow_kuerzel <- c(1:nrow(kuerzel))
 nrow_abbr <- c(1:nrow(abbr))
 for(i in nrow_kuerzel){
@@ -375,11 +393,11 @@ spalten <- c(1:ncol(Raw_gepris))
 
 gepris[zeilen,] <- NA
 
-gepris[,1] <- "DFG" # Ressort
-gepris[,6] <- Raw_gepris[,1] # Thema
-gepris[,7] <- Raw_gepris[,13] # Verbundprojekt
-gepris[,13] <- Raw_gepris[,6] # Förderprofil
-gepris[,14] <- Raw_gepris[,3] # Leistungsplansystematik
+gepris$foerderer <- "DFG"
+gepris$projekt <- Raw_gepris[,1] # titel
+gepris$verbundprojekt <- Raw_gepris[,13] # Teilprojekt zu
+gepris$topic <- Raw_gepris[,6] # DFG-Verfahren
+gepris$kategorie <- Raw_gepris[,3] # Fachliche Zuordnung
 
 laufzeit <- data.frame("von" = as.character(NA), 
                        "bis" = as.character(NA),
@@ -394,8 +412,8 @@ for(r in zeilen){
   if(grepl("bis", laufzeit[r,3])){
     laufzeit[r,2] <- substr(laufzeit[r,3], 24, 27)}
 }
-gepris[,3] <- laufzeit[,1] # von
-gepris[,4] <- laufzeit[,2] # bis
+gepris$von <- laufzeit[,1] # von
+gepris$bis <- laufzeit[,2] # bis
 rm(laufzeit,r)
 
 antragsteller <- data.frame("antragsteller" = as.character(NA), 
@@ -414,21 +432,23 @@ antragsteller[,1] <- paste(Raw_gepris[,9], # Antragstellende Institution
                            sep = " _ ")
 antragsteller[,1] <- gsub("NA _ ", "", antragsteller[,1])
 antragsteller[,1] <- gsub("_ NA", "", antragsteller[,1])
-gepris[,9] <- antragsteller[,1]
+gepris$institution <- antragsteller[,1]
 rm(antragsteller)
 
 #gepris <- gepris[-which(gepris[,9] == "NA"),]
-test <- gepris[which(grepl("[0-9]:", substr(gepris[,6], 1, 10))),]
-length(unique(gepris$Verbundprojekt))
+gepris <- gepris[-which(grepl("[0-9]:", substr(gepris$projekt, 1, 10))),]
+#length(unique(gepris$verbundprojekt))
 
 #### Antragstellende Institution filtern
+
+rm(spalten, zeilen)
 ```
 
-```{r Analyse des Leistungsplans, eval=FALSE}
+```{r Analyse des Leistungsplans # EDIT, eval=FALSE}
 leistungsplan <- projects[,c(14,15)]
 leistungsplan <- leistungsplan[-which(duplicated(leistungsplan)),]
-leistungsplan <- leistungsplan[-which(is.na(leistungsplan$Klartext.Leistungsplansystematik)),]
-leistungsplan <- leistungsplan[order(leistungsplan$Leistungsplansystematik),]
+leistungsplan <- leistungsplan[-which(is.na(leistungsplan$kategorie)),]
+leistungsplan <- leistungsplan[order(leistungsplan$kategorie_num),]
 
 library(tidytext)
 library(textreadr)
@@ -437,7 +457,7 @@ library(tidyr)
 
 stopwords_de <- get_stopwords(language = "de")
 
-lplan_df <- data_frame(line = 1:nrow(leistungsplan), text = leistungsplan$Klartext.Leistungsplansystematik)
+lplan_df <- data_frame(line = 1:nrow(leistungsplan), text = leistungsplan$kategorie)
 tidy_lplan <- lplan_df %>% unnest_tokens(word, text, to_lower = T) %>% anti_join(get_stopwords(language = "de"))
 tidy_lplan <- tidy_lplan[-which(duplicated(tidy_lplan)),]
 tidy_lplan$document <- "lplan"
@@ -491,7 +511,7 @@ lplan_na <- lplan[which(is.na(lplan$NBS) & is.na(lplan$NSO)),]
 
 NAs <- lplan_na$word
 
-raus <- leistungsplan$Klartext.Leistungsplansystematik
+raus <- leistungsplan$kategorie
 ```
 
 ```{r Förderkatalog subset by keywords, eval=FALSE}
@@ -506,19 +526,20 @@ biodivbiolvielfalt <- subset_projects(keywords = c("biodiv",
 ```
 
 ```{r Auswahl Datensatz (+gepris) und Förderzeitraum, eval=FALSE}
-Gdata <- subset_förderzeitraum(years = c("all"), dataset = biodivbiolvielfalt)
-Gdata <- subset_förderzeitraum(years = c(2007, 2008, 2009, 2010, 2011, 
+Gdata <- subset_foerderzeitraum(years = c("all"), 
+                               foerderkatalog = biodivbiolvielfalt)
+Gdata <- subset_foerderzeitraum(years = c(2007, 2008, 2009, 2010, 2011, 
                                          2012, 2013, 2014, 2015, 2016, 
                                          2017, 2018), 
-                               dataset = biodivbiolvielfalt)
+                               foerderkatalog = biodivbiolvielfalt)
 
-#Gdata <- subset_förderzeitraum(years = c(2019), dataset = monitoring)
+#Gdata <- subset_foerderzeitraum(years = c(2019), foerderkatalog = monitoring)
 ```
 
 
 # Ergänzung durch Forschungsverbünde
 
-```{r Laden der Rohdaten und Vorbereitung der Daten, eval=FALSE}
+```{r Laden der Rohdaten und Vorbereitung der Daten # EDIT, eval=FALSE}
 ## Load raw data
 Raw_forschungsnetzwerke <- read.csv2("Daten/forschungsnetzwerk.csv", sep=",", dec=".", header=T, encoding="UTF-8")
 
@@ -551,7 +572,7 @@ Gdata <- allocate_ids(Gdata)
 
 inst <- data.frame(id = Gdata$inst_id,
                    abbr = NA,
-                   name = Gdata$Zuwendungsempfänger,
+                   name = Gdata$institution,
                    type = "Institution",
                    ressort = NA,
                    pt = NA,
@@ -560,11 +581,11 @@ inst <- data.frame(id = Gdata$inst_id,
                    stringsAsFactors = FALSE)
 proj <- data.frame(id = Gdata$proj_id,
                    abbr = NA,
-                   name = Gdata$Thema,
+                   name = Gdata$projekt,
                    type = "Projekt",
-                   ressort = Gdata$Ressort,
-                   pt = Gdata$PT,
-                   leistungsplansystematik = Gdata$Klartext.Leistungsplansystematik,
+                   ressort = Gdata$foerderer,
+                   pt = Gdata$pt,
+                   leistungsplansystematik = Gdata$kategorie,
                    budget = NA,
                    stringsAsFactors = FALSE)
 nodes <- rbind(inst,proj)
@@ -585,7 +606,7 @@ rm(inst, proj, nodes_num, n)
 str(nodes)
 
 links <- Gdata
-links <- links[,c(9,6,10,11,7,8,1,2,3,4,5,12,13,14,15,16,17)]
+links <- links[,c(8,5,9,10,6,7,1:4,11:16)] #links[,c(9,6,10,11,7,8,1,2,3,4,5,12,13,14,15,16,17)]
 names(links)[c(1,2)] <- c("from", "to")
 links_dupl <- links[c("from", "to")]
 links <- links[-which(duplicated(links_dupl)),]
@@ -623,11 +644,12 @@ V(ntw)$vertex.col[V(ntw)$type == "Institution"] <- farben
 #V(ntw)$vertex.frame.col[V(ntw)$budget >= 1000000] <- budget[2]
 #V(ntw)$vertex.frame.col[V(ntw)$budget >= 5000000] <- budget[3]
 
-ressort <- c("grey", "goldenrod4", "forestgreen", "darkorchid")
-V(ntw)$vertex.col[V(ntw)$ressort == "BMBF"] <- ressort[1]
-V(ntw)$vertex.col[V(ntw)$ressort == "BMEL"] <- ressort[2]
-V(ntw)$vertex.col[V(ntw)$ressort == "BMU"] <- ressort[3]
-V(ntw)$vertex.col[V(ntw)$ressort == "BMWi"] <- ressort[4]
+foerderer <- c("grey", "goldenrod4", "forestgreen", "darkorchid", "blue") # to do
+V(ntw)$vertex.col[V(ntw)$foerderer == "BMBF"] <- foerderer[1]
+V(ntw)$vertex.col[V(ntw)$foerderer == "BMEL"] <- foerderer[2]
+V(ntw)$vertex.col[V(ntw)$foerderer == "BMU"] <- foerderer[3]
+V(ntw)$vertex.col[V(ntw)$foerderer == "BMWi"] <- foerderer[4]
+V(ntw)$vertex.col[V(ntw)$foerderer == "DFG"] <- foerderer[5] # to do
 
 lyout <- layout.auto(ntw) #layout.fruchterman.reingold(ntw)
 
@@ -638,10 +660,9 @@ plot(ntw, vertex.size = V(ntw)$vertex.size, vertex.color = V(ntw)$vertex.col,
      layout = lyout,
      main = "Projektbasierte Vernetzung in der Biodiversitätsforschung 2007-2018")
 legend(-1.6,-0.7, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
-legend(1,-0.7, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
+legend(1,-0.7, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi", "DFG"), fill = foerderer)
 #legend(-1.6,1.2, title = "Institution: Degree", legend = c("1", "2-5", "6-10", "11-15", ">15"), fill = coul)
-#legend(1,1.2, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi"), fill = ressort)
-#legend(1,-0.5, title = "Budget (Rand)", legend = c("bis 1 Mio Euro", "1-5 Mio Euro", "ab 5 Mio Euro"), fill = budget)
+#legend(1,1.2, title = "Projekt: Förderer", legend = c("BMBF", "BMEL", "BMU", "BMWi", "DFG"), fill = foerderer)
 text(0,1.1, "Schriftgröße = Betweenness")
 
 Gdata_sna <- cbind(nodes,
