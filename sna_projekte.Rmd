@@ -107,7 +107,7 @@ if(identical(which(duplicated(biodiv)), duplicated_test) == FALSE){
   biodiv <- biodiv[-which(duplicated(biodiv)),]}
 rm(duplicated_test)
 
-#allocate_ids cut here
+# HIER INSTITUTIONEN VEREINHEITLICHEN
 
 biodiv <- biodiv[,-c(17)]
 
@@ -225,7 +225,43 @@ return(biodiv)
 
 # Rohdaten
 
+```{r Crawling GEPRIS - Institutionen, eval=FALSE}
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R/Daten/GEPRIS-Institutionen")
+library(Rcrawler)
+
+INDEX <- data.frame("Id"=NA, "Url"=NA, "Stats"=NA, "Level"=NA, "OUT"=NA, "IN"=NA, "Http Resp"=NA, "Content Type"=NA, "Encoding"=NA, "Accuracy"=NA)
+for(a in letters){
+  Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=institution&findButton=historyCall&hitsPerPage=100000&index=0&keywords_criterion=", a, "*&task=doSearchSimple", sep = "")
+  t0 <- Sys.time()
+  INDEX <- rbind(INDEX,
+                 Rcrawler(Suche, no_cores = 1, no_conn = 1,
+                          dataUrlfilter = c("/gepris/institution/"),
+                          crawlUrlfilter = c("/gepris/institution/"),
+                          ignoreUrlParams = c("/ergebnisse", 
+                                              "?language", 
+                                              "?displayMode", 
+                                              "?fontSize", 
+                                              "?contrast"))
+                 )
+  t1 <- Sys.time()
+  response_delay <- as.numeric(t1-t0)
+  Sys.sleep(10*response_delay)
+}
+rm(t0, t1, response_delay)
+}
+
+Suche <- paste("http://gepris.dfg.de/gepris/OCTOPUS?context=institution&findButton=historyCall&hitsPerPage=100000&index=0&keywords_criterion=", "a", "*&task=doSearchSimple", sep = "")
+
+Rcrawler(Suche, no_cores = 2, no_conn = 2,
+         dataUrlfilter = c("/gepris/institution/"),
+         crawlUrlfilter = c("/gepris/institution/"),
+         ignoreUrlParams = c("/ergebnisse", "?language", "?displayMode", "?fontSize", "?contrast"))
+
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R")
+```
+
 ```{r Crawling GEPRIS - Projekte, eval=FALSE}
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R/Daten/GEPRIS-Projekte")
 library(Rcrawler)
 
 keywords <- "biodiv*+OR+%26quot%3Bbiologische*+vielfalt%26quot%3B+OR+%26quot%3Bbiological+diversity%26quot%3B" # * = und Anhang | +OR+ = OR | + = Leerzeichen | %26quot%3B = Anführungsstriche
@@ -254,19 +290,23 @@ Rcrawler(Suche, no_cores = 2, no_conn = 2, #MaxDepth = 1,
          dataUrlfilter = c("/gepris/projekt/"),
          crawlUrlfilter = c("/gepris/projekt/"),
          ignoreUrlParams = c("/ergebnisse", "?language", "?displayMode", "?fontSize", "?contrast"))
+
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R")
 ```
 
 ```{r Scraping GEPRIS - Projekte, eval=FALSE}
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R/Daten/GEPRIS-Projekte")
 library(Rcrawler)
+ListProjects()
 
-files <- c(1:length(list.files(path = paste(getwd(), 
-                                            "/gepris.dfg.de-111357", 
+files <- c(1:length(list.files(path = paste(getwd(), "/",
+                                            ListProjects()[1], 
                                             sep=""))))
 
 DATA <- list()
 for(a in files){
-  DATA[[a]] <- ContentScraper(HTmlText = paste(paste(getwd(), 
-                                            "/gepris.dfg.de-111357/", 
+  DATA[[a]] <- ContentScraper(HTmlText = paste(paste(getwd(), "/",
+                                            ListProjects()[1], "/",
                                             sep=""), a," .html", sep=""),
                               XpathPatterns = c("/html/body/div[1]/div/div[3]/div[1]/div/div/div[2]/div[1]/div[1]/h3",
                                                 "//*[@id='projekttext']",
@@ -275,6 +315,7 @@ for(a in files){
                               ManyPerPattern = TRUE,
                               encod = "UTF-8")
 }
+
 gepris <- data.frame(do.call("rbind", DATA))
 
 title <- unlist(lapply(DATA, `[[`, 1))
@@ -323,6 +364,7 @@ Raw_gepris <- gepris[,-c(3,4)]
 #write.csv2(gepris, file = "gepris.csv")
 
 rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value, gepris)
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R")
 ```
 
 ```{r Laden und Vorbereitung des Förderkatalogs, eval=FALSE}
@@ -333,7 +375,7 @@ library(xlsx)
 #Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 #Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 
-Raw_projects_gesamt <- read.csv2("Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
+Raw_projects_gesamt <- read.csv2("Daten/Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
 
 #projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
 projects <- Raw_projects_gesamt
@@ -362,23 +404,9 @@ projects <- projects[order(projects$foerderer, projects$von, projects$bis),]
 #rm(nrow, n)
 ```
 
-```{r Abkürzungen, eval=FALSE}
-abbr <- read.csv2("Forschungsatlas_abbr.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
-abbr <- read.csv2("kuerzel_Donnerstag.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
+```{r Abbr, eval=FALSE}
+abbr <- read.csv2("abbr.csv", na.strings = "", sep=";", dec=",", header=T, stringsAsFactors=F)
 abbr <- abbr[,-1]
-
-kuerzel <- data.frame(abbr = NA, inst = unique(Gdata$institution))
-nrow_kuerzel <- c(1:nrow(kuerzel))
-nrow_abbr <- c(1:nrow(abbr))
-for(i in nrow_kuerzel){
-  for(j in nrow_abbr){
-    if(kuerzel[i,2] == abbr[j,2]){
-      kuerzel[i,1] <- abbr[j,3]
-    }
-  }
-}
-rm(nrow_kuerzel, nrow_abbr)
-#write.csv2(kuerzel, file = "kuerzel.csv")
 ```
 
 
@@ -416,35 +444,113 @@ gepris$von <- laufzeit[,1] # von
 gepris$bis <- laufzeit[,2] # bis
 rm(laufzeit,r)
 
+gepris_antragsteller <- Raw_gepris[,c(9,11,12,20,24,25,36,41,42,49)] ##### HIER ÜBERPRÜFEN
+gepris_antragsteller_spalten <- c(1:ncol(gepris_antragsteller))
+abbr_num <- c(1:nrow(abbr))
+for(c in gepris_antragsteller_spalten){
+  for(r in zeilen){
+    if(is.na(gepris_antragsteller[r,c])){} else {
+    for(a in abbr_num){
+      if(grepl(abbr[a,1], gepris_antragsteller[r,c])){
+        gepris_antragsteller[r,c] <- abbr[a,1]
+        } else
+          if(grepl(abbr[a,2], gepris_antragsteller[r,c])){
+            gepris_antragsteller[r,c] <- abbr[a,1]
+          } else
+            if(is.na(abbr[a,3])){
+              } else
+                if(grepl(abbr[a,3], gepris_antragsteller[r,c])){
+                  gepris_antragsteller[r,c] <- abbr[a,1]
+                }
+    }}
+  }
+}
+gepris_antragsteller_unique <- vector()
+for(c in gepris_antragsteller_spalten){
+  for(r in zeilen){
+      if(gepris_antragsteller[r,c] %!in% abbr[,1]){
+      gepris_antragsteller_unique <- c(gepris_antragsteller_unique, gepris_antragsteller[r,c])
+      }
+}}
+gepris_antragsteller_unique <- unique(gepris_antragsteller_unique)
+gepris_antragsteller_unique <- gepris_antragsteller_unique[-which(is.na(gepris_antragsteller_unique))]
+gepris_antragsteller_unique <- as.data.frame(gepris_antragsteller_unique)
+#write.csv2(gepris_antragsteller_unique, "gepris_antragsteller_unique.csv")
+
+for(c in gepris_antragsteller_spalten){
+  for(r in zeilen){
+  if(gepris_antragsteller[r,c] %!in% abbr[,1]){
+      gepris_antragsteller[r,c] <- NA
+      }
+}}
+rm(gepris_antragsteller_spalten, abbr_num, r, c, a, gepris_antragsteller_unique)
+
 antragsteller <- data.frame("antragsteller" = as.character(NA), 
                        "title" = as.character(Raw_gepris[,1]),
                        stringsAsFactors = FALSE)
-antragsteller[,1] <- paste(Raw_gepris[,9], # Antragstellende Institution
-                           Raw_gepris[,11], # Antragsteller
-                           Raw_gepris[,12], # Antragstellerin
-                           Raw_gepris[,20], # Antragsteller
-                           Raw_gepris[,24], # Antragstellerinnen/Antragsteller
-                           Raw_gepris[,25], # Mitanstragstellerin
-                           Raw_gepris[,36], # Mitantragstellende Institution
-                           Raw_gepris[,41], # Mitantragsteller
-                           Raw_gepris[,42], # Mitantragstellerinnen/Mitantragsteller
-                           Raw_gepris[,49], # Antragstellerinnen
+antragsteller[,1] <- paste(gepris_antragsteller[,1], # 9 Antragstellende Institution
+                           gepris_antragsteller[,2], # 11 Antragsteller
+                           gepris_antragsteller[,3], # 12 Antragstellerin
+                           gepris_antragsteller[,4], # 20 Antragsteller
+                           gepris_antragsteller[,5], # 24 Antragstellerinnen/Antragsteller
+                           gepris_antragsteller[,6], # 25 Mitanstragstellerin
+                           gepris_antragsteller[,7], # 36 Mitantragstellende Institution
+                           gepris_antragsteller[,8], # 41 Mitantragsteller
+                           gepris_antragsteller[,9], # 42 Mitantragstellerinnen/Mitantragsteller
+                           gepris_antragsteller[,10], # 49 Antragstellerinnen
                            sep = " _ ")
 antragsteller[,1] <- gsub("NA _ ", "", antragsteller[,1])
-antragsteller[,1] <- gsub("_ NA", "", antragsteller[,1])
+antragsteller[,1] <- gsub(" _ NA", "", antragsteller[,1])
+
 gepris$institution <- antragsteller[,1]
-rm(antragsteller)
+rm(antragsteller, gepris_antragsteller)
 
-#gepris <- gepris[-which(gepris[,9] == "NA"),]
+mehrere_antragsteller_1 <- gepris[which(grepl("_", gepris[,9])),]
+mehrere_antragsteller_2 <- gepris[which(grepl("_", gepris[,9])),]
+mehrere_antragsteller_zeilen <- c(1:nrow(mehrere_antragsteller_1))
+for(z in mehrere_antragsteller_zeilen){
+  mehrere_antragsteller_1[z,9] <- strsplit(mehrere_antragsteller_1[z,9], " _ ")[[1]][[1]]
+  mehrere_antragsteller_2[z,9] <- strsplit(mehrere_antragsteller_2[z,9], " _ ")[[1]][[2]]
+}
+mehrere_antragsteller <- rbind(mehrere_antragsteller_1, mehrere_antragsteller_2)
+mehrere_antragsteller <- mehrere_antragsteller[-which(duplicated(mehrere_antragsteller)),]
+gepris <- rbind(gepris[-which(grepl("_", gepris[,9])),], mehrere_antragsteller)
+rm(mehrere_antragsteller, mehrere_antragsteller_zeilen, z, mehrere_antragsteller_1, mehrere_antragsteller_2)
+
 gepris <- gepris[-which(grepl("[0-9]:", substr(gepris$projekt, 1, 10))),]
-#length(unique(gepris$verbundprojekt))
+gepris <- gepris[-which(gepris[,9] == "NA"),]
 
-#### Antragstellende Institution filtern
+gepris <- gepris[-which(duplicated(gepris)),]
 
 rm(spalten, zeilen)
 ```
 
-```{r Analyse des Leistungsplans # EDIT, eval=FALSE}
+```{r Förderkatalog subset by keywords, eval=FALSE}
+#biodiv <- subset_projects(keywords = c("biodiv"))
+biodivbiolvielfalt <- subset_projects(keywords = c("biodiv", 
+                                                   "biologische vielfalt", "biologischen vielfalt",
+                                                   "biological diversity"))
+
+#monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "biologischen vielfalt",
+                                           "biological diversity", "monitoring"))
+
+```
+
+```{r Auswahl Datensatz (+gepris) und Förderzeitraum, eval=FALSE}
+Gdata <- subset_foerderzeitraum(years = c("all"), 
+                               foerderkatalog = biodivbiolvielfalt)
+Gdata <- subset_foerderzeitraum(years = c(2007, 2008, 2009, 2010, 2011, 
+                                         2012, 2013, 2014, 2015, 2016, 
+                                         2017, 2018), 
+                               foerderkatalog = biodivbiolvielfalt)
+
+#Gdata <- subset_foerderzeitraum(years = c(2019), foerderkatalog = monitoring)
+```
+
+
+# Ergänzungen
+
+```{r Analyse des Förderkatalog-Leistungsplans # EDIT, eval=FALSE}
 leistungsplan <- projects[,c(14,15)]
 leistungsplan <- leistungsplan[-which(duplicated(leistungsplan)),]
 leistungsplan <- leistungsplan[-which(is.na(leistungsplan$kategorie)),]
@@ -513,31 +619,6 @@ NAs <- lplan_na$word
 
 raus <- leistungsplan$kategorie
 ```
-
-```{r Förderkatalog subset by keywords, eval=FALSE}
-#biodiv <- subset_projects(keywords = c("biodiv"))
-biodivbiolvielfalt <- subset_projects(keywords = c("biodiv", 
-                                                   "biologische vielfalt", "biologischen vielfalt",
-                                                   "biological diversity"))
-
-#monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "biologischen vielfalt",
-                                           "biological diversity", "monitoring"))
-
-```
-
-```{r Auswahl Datensatz (+gepris) und Förderzeitraum, eval=FALSE}
-Gdata <- subset_foerderzeitraum(years = c("all"), 
-                               foerderkatalog = biodivbiolvielfalt)
-Gdata <- subset_foerderzeitraum(years = c(2007, 2008, 2009, 2010, 2011, 
-                                         2012, 2013, 2014, 2015, 2016, 
-                                         2017, 2018), 
-                               foerderkatalog = biodivbiolvielfalt)
-
-#Gdata <- subset_foerderzeitraum(years = c(2019), foerderkatalog = monitoring)
-```
-
-
-# Ergänzung durch Forschungsverbünde
 
 ```{r Laden der Rohdaten und Vorbereitung der Daten # EDIT, eval=FALSE}
 ## Load raw data
