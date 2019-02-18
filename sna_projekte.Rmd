@@ -107,8 +107,6 @@ if(identical(which(duplicated(biodiv)), duplicated_test) == FALSE){
   biodiv <- biodiv[-which(duplicated(biodiv)),]}
 rm(duplicated_test)
 
-# HIER INSTITUTIONEN VEREINHEITLICHEN
-
 biodiv <- biodiv[,-c(17)]
 
 return(biodiv)
@@ -375,7 +373,7 @@ library(xlsx)
 #Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 #Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 
-Raw_projects_gesamt <- read.csv2("Daten/Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
+Raw_projects_gesamt <- read.csv2("Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
 
 #projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
 projects <- Raw_projects_gesamt
@@ -453,15 +451,16 @@ for(c in gepris_antragsteller_spalten){
     for(a in abbr_num){
       if(grepl(abbr[a,1], gepris_antragsteller[r,c])){
         gepris_antragsteller[r,c] <- abbr[a,1]
-        } else
+        } else {
           if(grepl(abbr[a,2], gepris_antragsteller[r,c])){
             gepris_antragsteller[r,c] <- abbr[a,1]
-          } else
+          } else {
             if(is.na(abbr[a,3])){
-              } else
+              } else {
                 if(grepl(abbr[a,3], gepris_antragsteller[r,c])){
                   gepris_antragsteller[r,c] <- abbr[a,1]
-                }
+                } else {}
+              }}}
     }}
   }
 }
@@ -531,8 +530,37 @@ biodivbiolvielfalt <- subset_projects(keywords = c("biodiv",
                                                    "biologische vielfalt", "biologischen vielfalt",
                                                    "biological diversity"))
 
-#monitoring <- subset_projects(keywords = c("biodiv", "biologische vielfalt", "biologischen vielfalt",
-                                           "biological diversity", "monitoring"))
+foerderdb <- biodivbiolvielfalt
+
+zeilen <- c(1:nrow(foerderdb))
+abbr_num <- c(1:nrow(abbr))
+for(r in zeilen){
+  for(a in abbr_num){
+    if(grepl(abbr[a,1], foerderdb[r,9])){
+      foerderdb[r,9] <- abbr[a,1]
+      } else {
+        if(grepl(abbr[a,2], foerderdb[r,9])){
+          foerderdb[r,9] <- abbr[a,1]
+        } else {
+          if(is.na(abbr[a,3])){
+            } else {
+              if(grepl(abbr[a,3], foerderdb[r,9])){
+                foerderdb[r,9] <- abbr[a,1]
+              } else {}
+              }}}
+  }
+}
+
+foerderdb_unique <- vector()
+for(r in zeilen){
+    if(foerderdb[r,c] %!in% abbr[,1]){
+    foerderdb_unique <- c(foerderdb_unique, foerderdb[r,c])
+    }
+}
+foerderdb_unique <- unique(foerderdb_unique)
+foerderdb_unique <- foerderdb_unique[-which(is.na(foerderdb_unique))]
+foerderdb_unique <- as.data.frame(foerderdb_unique)
+#write.csv2(foerderdb_unique, "foerderdb_unique")
 
 ```
 
