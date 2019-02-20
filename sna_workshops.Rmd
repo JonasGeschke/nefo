@@ -71,83 +71,42 @@ delete.isolates <- function(graph, mode = "all"){
   delete.vertices(graph, isolates)
 }
 
-subset_workshops <- function(Gdata, subset = "2010-2018"){
-  if (subset == "2010-2018"){
-    Gdata <- Gdata[,-c(which(names(Gdata) %in% c("WS24", "WS28", "WS31", "WS39")))]
-    return(Gdata)}
-  else if (subset == "ipbesforen"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS7", "WS20", "WS24", "WS28", "WS31", "WS39")))]
-    return(Gdata)}
-  else if (subset == "nefo"){
-    Gdata <- Gdata_WS[,-c(which(names(Gdata_WS) %in% c("WS24", "WS28", "WS31", "WS39")))]
-    return(Gdata)}
-  else if (subset == "nefobiodiv"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS8", "WS9", "WS11", "WS12", "WS13", "WS14", "WS19", "WS25", "WS26", "WS30", "WS32", "WS35", "WS36", "WS37", "WS40")))]
-    return(Gdata)}
-  else if (subset == "nefoipbes"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS7", "WS10", "WS15", "WS16", "WS17", "WS18", "WS20", "WS21", "WS22", "WS23", "WS27", "WS29", "WS33", "WS34", "WS38", "WS41")))]
-    return(Gdata)}
-  else if (subset == "2010"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS4")))]
-    return(Gdata)}
-  else if (subset == "2011"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10")))]
-    return(Gdata)}
-  else if (subset == "2012"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS11", "WS12", "WS13", "WS14")))]
-    return(Gdata)}
-  else if (subset == "2013"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS15", "WS16", "WS17", "WS18", "WS19", "WS20")))]
-    return(Gdata)}
-  else if (subset == "2014"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS21", "WS22", "WS23", "WS25")))]
-    return(Gdata)}
-  else if (subset == "2015"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS26", "WS27")))]
-    return(Gdata)}
-  else if (subset == "2016"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS29", "WS30")))]
-    return(Gdata)}
-  else if (subset == "2017"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS32", "WS33", "WS34", "WS35", "WS36")))]
-    return(Gdata)}
-  else if (subset == "2018"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS37", "WS38", "WS40", "WS41")))]
-    return(Gdata)}
-  else if (subset == "2010-2011"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10")))]
-    return(Gdata)}
-  else if (subset == "2010-2012"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14")))]
-    return(Gdata)}
-  else if (subset == "2010-2013"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20")))]
-    return(Gdata)}
-  else if (subset == "2010-2014"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25")))]
-    return(Gdata)}
-  else if (subset == "2010-2015"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27")))]
-    return(Gdata)}
-  else if (subset == "2010-2016"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27", "WS29", "WS30")))]
-    return(Gdata)}
-  else if (subset == "2010-2017"){
-    Gdata <- Gdata[,c(1:4,which(names(Gdata) %in% c("WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7", "WS8", "WS9", "WS10", "WS11", "WS12", "WS13", "WS14", "WS15", "WS16", "WS17", "WS18", "WS19", "WS20", "WS21", "WS22", "WS23", "WS25", "WS26", "WS27", "WS29", "WS30", "WS32", "WS33", "WS34", "WS35", "WS36")))]
-    return(Gdata)}
-  else {print("Please set subset: ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018")}
-}
+subset_workshops <- function(Gdata, subset = c(years)){
+  if(all(subset %in% c(2010:2018)) == FALSE){
+    print("Please set years for subsetting, inbetween 2010 and 2018 only.")}
+  else {
+    years_num <- c(1:length(subset))
+    Gdata_new <- Gdata[,-c(5:ncol(Gdata))]
+    for(y in years_num){
+      Gdata_new <- cbind(Gdata_new,
+                         Gdata[,which((colnames(Gdata) %in% WS_info[grep(as.character(subset[y]), WS_info$Jahr),1]))])
+      }
+    rm(y, Gdata)
+    
+    if(2010 %in% subset){
+      Gdata_new <- Gdata_new[,-6]}
+    
+    for(y in years_num){
+      workshps <- c(grep(as.character(subset[y]), WS_info$Jahr))
+      for(w in workshps){
+      if(WS_info[w,2] == "initiiert"){
+        Gdata_new <- Gdata_new[,-which(colnames(Gdata_new) == WS_info[w,1])]}
+      }
+    }
+    
+    Gdata_new <- subset(Gdata_new, Gdata_new$Land == "Deutschland")
+    Gdata_new <- Gdata_new[order(Gdata_new$Inst, Gdata_new$Name),]
+    Gdata_new <- subset(Gdata_new, rowSums(Gdata_new[5:ncol(Gdata_new)]) != 0)
+#   Gdata_new$overview <- apply(Gdata_new[,c(5:ncol(Gdata_new))], 1, paste, collapse = "-")
+#   todelete <- paste(replicate((ncol(Gdata_new)-5), "0"), collapse = "-")
+#   Gdata_new <- Gdata_new[-c(which(Gdata_new[,ncol(Gdata_new)] == todelete)),]
+#   Gdata_new <- Gdata_new[,-ncol(Gdata_new)]
+    rm(years_num)
+  
+    return(Gdata_new)
+}}
 
 create_nodes_workshops_1mode <- function(Gdata){
-  #preparation
-  Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
-  Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
-  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
-#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))], 1, paste, collapse = "-")
-#  todelete <- paste(replicate((ncol(Gdata)-5), "0"), collapse = "-")
-#  Gdata <- Gdata[-c(which(Gdata[,ncol(Gdata)] == todelete)),]
-#  Gdata <- Gdata[,-ncol(Gdata)]
-  
   if(any(Gdata$Inst == "Selbstständig")==TRUE){
     selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
     selbststaendig <- c(1:length(selbststaendig_alt))
@@ -212,13 +171,6 @@ create_nodes_workshops_1mode <- function(Gdata){
 
 create_links_workshops_1mode <- function(Gdata){
   #preparation
-  Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
-  Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
-  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
-#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))],1,paste,collapse="-")
-#  Gdata <- Gdata[-c(which(Gdata$overview == paste(replicate((ncol(Gdata)-5), "0"), collapse = "-"))),]
-#  Gdata <- Gdata[,-ncol(Gdata)]
-  
   if(any(Gdata$Inst == "Selbstständig")==TRUE){
     selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
     selbststaendig <- c(1:length(selbststaendig_alt))
@@ -305,14 +257,6 @@ create_links_workshops_1mode <- function(Gdata){
 
 create_nodes_workshops_2mode <- function(Gdata){
   #preparation
-  Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
-  Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
-  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
-#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))], 1, paste, collapse = "-")
-#  todelete <- paste(replicate((ncol(Gdata)-5), "0"), collapse = "-")
-#  Gdata <- Gdata[-c(which(Gdata[,ncol(Gdata)] == todelete)),]
-#  Gdata <- Gdata[,-ncol(Gdata)]
-  
   if(any(Gdata$Inst == "Selbstständig")==TRUE){
     selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
     selbststaendig <- c(1:length(selbststaendig_alt))
@@ -375,13 +319,6 @@ create_nodes_workshops_2mode <- function(Gdata){
 
 create_links_workshops_2mode <- function(Gdata){
   #preparation
-  Gdata <- subset(Gdata, Gdata$Land == "Deutschland")
-  Gdata <- Gdata[order(Gdata$Inst, Gdata$Name),]
-  Gdata <- subset(Gdata, (rowSums(Gdata[5:ncol(Gdata)]) != 0))
-#  Gdata$overview <- apply(Gdata[,c(5:ncol(Gdata))],1,paste,collapse="-")
-#  Gdata <- Gdata[-c(which(Gdata$overview == paste(replicate((ncol(Gdata)-5), "0"), collapse = "-"))),]
-#  Gdata <- Gdata[,-ncol(Gdata)]
-  
   if(any(Gdata$Inst == "Selbstständig")==TRUE){
     selbststaendig_alt <- c(which(Gdata$Inst == "Selbstständig"))
     selbststaendig <- c(1:length(selbststaendig_alt))
@@ -451,8 +388,12 @@ create_links_workshops_2mode <- function(Gdata){
 library(xlsx)
 
 ## Load raw data
-Raw_workshops <- read.xlsx(file = "Daten/workshopdaten_20180619.xlsx", sheetIndex = 1, encoding="UTF-8")
-Raw_workshops_info <- read.xlsx(file = "Daten/workshopdaten_20180619.xlsx", sheetIndex = 2, encoding="UTF-8")
+Raw_workshops <- read.xlsx(file = "Daten/workshopdaten_20190219.xlsx", sheetIndex = 1, encoding="UTF-8")
+Raw_workshops_info <- read.xlsx(file = "Daten/workshopdaten_20190219.xlsx", sheetIndex = 2, encoding="UTF-8")
+
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R")
+abbr <- read.csv2(file = "abbr.csv", stringsAsFactors = FALSE)
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_NeFo/R")
 
 detach("package:xlsx", unload=TRUE)
 ```
@@ -460,12 +401,17 @@ detach("package:xlsx", unload=TRUE)
 ```{r Vorbereitung der Daten, eval=FALSE}
 ## Edit WS info
 WS_info <- Raw_workshops_info
-WS_info <- WS_info[-c(42,43),-c(6,8:ncol(WS_info))]
+WS_info <- WS_info[,-c(6,9:ncol(WS_info))]
+WS_info$ID <- as.character(WS_info$ID)
+WS_info$Biodiv <- as.character(WS_info$Biodiv)
+WS_info$IPBES <- as.character(WS_info$IPBES)
 WS_info$Workshop <- as.character(WS_info$Workshop)
+WS_info$Jahr <- as.character(WS_info$Jahr)
+WS_info$Ort <- as.character(WS_info$Ort)
 
 ## Prepare datasets "WS"
 Gdata_WS <- Raw_workshops
-Gdata_WS <- Gdata_WS[-c(1,1278:nrow(Gdata_WS)),-c(52:57)] # Zeilen und Spalten loeschen
+Gdata_WS <- Gdata_WS[-which(is.na(Gdata_WS$Institutionskürzel..aktuell....von.uns.vergeben)),-c(57:ncol(Gdata_WS))] # Zeilen und Spalten loeschen
 names(Gdata_WS) <- c("Titel", "cutoff", "Name", "Inst", "Land",
                   "Inst_lang", "addinfo", "Kategorie", "Inst_alt", "Kontakt", 
                   "WS1", "WS2", "WS3", "WS4", "WS5", 
@@ -475,7 +421,8 @@ names(Gdata_WS) <- c("Titel", "cutoff", "Name", "Inst", "Land",
                   "WS21", "WS22", "WS23", "WS24", "WS25", 
                   "WS26", "WS27", "WS28", "WS29", "WS30",
                   "WS31", "WS32", "WS33", "WS34", "WS35",
-                  "WS36", "WS37", "WS38", "WS39", "WS40", "WS41")
+                  "WS36", "WS37", "WS38", "WS39", "WS40", 
+                  "WS41", "WS42", "WS43", "WS44", "WS45", "WS47")
 Gdata_WS <- Gdata_WS[,-c(1,6,7,9,10)]
 Gdata_WS <- Gdata_WS[-c(which(Gdata_WS$cutoff == "1")),] # Institutswechsel Zeilen loeschen
 Gdata_WS <- Gdata_WS[,-1] # Cutoff loeschen
@@ -487,11 +434,17 @@ Gdata_WS$Kategorie <- as.character(Gdata_WS$Kategorie)
 columnno5 <- c(5:ncol(Gdata_WS))
 for (c in columnno5){
   Gdata_WS[,c] <- as.numeric.factor(Gdata_WS[,c])
-  }
+}
+any(is.na(Gdata_WS[,c(5:ncol(Gdata_WS))]))
+
+length(unique(abbr[,3]))
+length(unique(Gdata_WS[,2]))
+#toadd <- as.vector(Gdata_WS[which(unique(Gdata_WS[,2]) %!in% unique(abbr[,3])),2])
+
 rowno <- c(1:nrow(Gdata_WS))
 for (r in rowno){
   if ((Gdata_WS[r,2] == "keine Angabe") & (Gdata_WS[r,3] == "keine Angabe")){
-  Gdata_WS[r,3] <- "Deutschland"}
+    Gdata_WS[r,3] <- "Deutschland"}
   if (Gdata_WS[r,4] == "Behörde"){
     Gdata_WS[r,4] <- "Behoerde"}
   if (Gdata_WS[r,4] == "Verbände"){
@@ -501,8 +454,8 @@ rm(c, columnno5, r, rowno)
 ```
 
 ```{r Subset der Daten, eval=FALSE}
-Gdata <- subset_workshops(Gdata_WS, subset = "2010-2018")
-# ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018
+Gdata <- subset_workshops(Gdata_WS, subset = c(2010:2018))
+# ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018, 2010-2019
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -549,17 +502,19 @@ workshops_sna[,6] <- igraph::degree(ws2)[1:length(V(ws2)$name)]
 workshops_sna[,7] <- round((igraph::betweenness(ws2)[1:length(V(ws2)$name)]),digits=2)
 #workshops_sna[rows2,7] <- round((igraph::betweenness(ws2)[(nrow(Gdata)+1):nrow(workshops_sna)]),digits=2)
 
+
+################################## NEEDS EDIT
 workshops_sna$degree1rel <- NA
-workshops_sna$degree2rel <- NA
 workshops_sna$betweenness1rel <- NA
+workshops_sna$degree2rel <- NA
 workshops_sna$betweenness2rel <- NA
-workshops_sna[rows1,9] <- round(workshops_sna[rows1,5] / max(workshops_sna[rows1,5]),digits=2)
-workshops_sna[,10] <- round(workshops_sna[,7] / max(workshops_sna[,7]),digits=2)
-workshops_sna[rows1,11] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows1,6]),digits=2)
-workshops_sna[,12] <- round(workshops_sna[,8] / max(workshops_sna[,8]),digits=2)
+workshops_sna[rows1,8] <- round(workshops_sna[rows1,4] / max(workshops_sna[rows1,4]),digits=2) # degree1
+workshops_sna[rows1,9] <- round(workshops_sna[,5] / max(workshops_sna[,5]),digits=2) # betweenness1
+workshops_sna[,10] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows1,6]),digits=2) # degree2
+workshops_sna[,11] <- round(workshops_sna[,7] / max(workshops_sna[,7]),digits=2) # betweenness2
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_biodiv_2012.xls") ### EDIT
+xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_2010-2018.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
@@ -631,15 +586,19 @@ plotK <- data.frame(n = c(length(which(V(ws2)$kategorie == "Wissenschaft")),
                           length(which(V(ws2)$kategorie == "Wirtschaft")),
                           length(which(V(ws2)$kategorie == "Verbaende")),
                           length(which(V(ws2)$kategorie == "Medien")),
+                          length(which(V(ws2)$kategorie == "Bildung")),
+                          length(which(V(ws2)$kategorie == "Kirche")),
                           length(which(V(ws2)$kategorie == "keine Angabe"))))
 plot <- barplot(plotK$n, col = c(rgb(92,139,255,max=255), #[-6,]
                             rgb(219,174,0,max=255), 
                             rgb(11,33,94,max=255), 
                             rgb(0,155,68,max=255), 
                             rgb(180,33,0,max=255),
+                            rgb(162,205,90,max=255),
+                            rgb(127,127,127,max=255),
                             rgb(255,161,213,max=255)),
         ylim = c(0,120), yaxt='n',
-        names.arg=c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", "keine Angabe"),
+        names.arg=c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", "Bildung", "Kirche", "keine Angabe"),
         cex.names = 1.5)
 text(x = plot, y = plotK$n, label = plotK$n, pos = 3, cex = 1.5, col = "black") #0.8
 
@@ -885,6 +844,8 @@ V(ws2)$color_k[V(ws2)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Bildung"] <- rgb(162,205,90,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Kirche"] <- rgb(127,127,127,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
 V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 1 # Workshops
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
@@ -903,6 +864,9 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.frame.color = NA, vertex.label.color = "black",
      edge.arrow.size = 0, edge.color = E(ws2)$color_st,
      layout = lyout_ws)
+legend(-1.6,-0.3, title = "Degree", legend = c("1-50", "51-100", "101-200", "201-300", "301-400", "401-500", ">500"), fill = coul7, 
+       border = NA,
+       bty = "n")
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
      vertex.label = V(ws2)$names, vertex.label.family = "Calibri",
      vertex.frame.color = NA, vertex.label.color = "black",
@@ -915,6 +879,18 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
+legend(-1.6,-0.3, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "Wirtschaft", 
+                                                  "Verbände", "Medien", "Bildung", 
+                                                  "Kirche", "keine Angabe"), 
+       fill = c(rgb(92,139,255,max=255),
+                rgb(219,174,0,max=255), 
+                rgb(11,33,94,max=255), 
+                rgb(0,155,68,max=255), 
+                rgb(180,33,0,max=255),
+                rgb(162,205,90,max=255),
+                rgb(127,127,127,max=255),
+                rgb(255,161,213,max=255)), 
+       bty = "n")
 
 ## Workshops: Kategorien mit WS Name
 par(mfrow=c(1,1))
