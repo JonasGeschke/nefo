@@ -373,7 +373,7 @@ library(xlsx)
 #Raw_projects_FC <- read.csv2("Daten/Suchergebnisse_FC_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 #Raw_projects_FD <- read.csv2("Daten/Suchergebnisse_FD_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
 
-Raw_projects_gesamt <- read.csv2("Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
+Raw_projects_gesamt <- read.csv2("Daten/Suchliste_gesamt_form.csv", sep=";", dec=",", header=T, na.strings = "", stringsAsFactors=F) # Abgerufen am 9.1.19
 
 #projects <- rbind(Raw_projects_FA, Raw_projects_FB, Raw_projects_FC, Raw_projects_FD)
 projects <- Raw_projects_gesamt
@@ -404,7 +404,32 @@ projects <- projects[order(projects$foerderer, projects$von, projects$bis),]
 
 ```{r Abbr, eval=FALSE}
 abbr <- read.csv2("abbr.csv", na.strings = "", sep=";", dec=",", header=T, stringsAsFactors=F)
-abbr <- abbr[,-1]
+
+biodiv_inst_unique <- unique(biodivbiolvielfalt[,9])
+biodiv_ausf_unique <- unique(biodivbiolvielfalt[,11])
+abbr_row  <- c(1:nrow(abbr))
+biodiv_inst_row <- c(1:length(biodiv_inst_unique))
+biodiv_ausf_row <- c(1:length(biodiv_ausf_unique))
+for(r in biodiv_inst_row){
+  for(a in abbr_row){
+  if(grepl(biodiv_inst_unique[r], abbr[a,5])){
+      abbr[a,7] <- biodiv_inst_unique[r]}
+  }
+  if(!grepl(biodiv_inst_unique[r], abbr[,5])){
+      abbr <- rbind(abbr, c(NA, NA, NA, NA, NA, NA, biodiv_inst_unique[r], NA))}
+}
+for(f in biodiv_ausf_row){
+  for(a in abbr_row){
+  if(grepl(biodiv_ausf_unique[f], abbr[a,5])){
+      abbr[a,7] <- biodiv_ausf_unique[f]}
+  if(!grepl(biodiv_ausf_unique[f], abbr[,5])){
+      abbr <- rbind(abbr, c(NA, NA, NA, NA, NA, NA, NA, biodiv_ausf_unique[f]))}
+  }}
+abbr <- abbr[-which(duplicated(abbr)),]
+#abbr <- abbr[rowSums(is.na(abbr)) != ncol(abbr),]
+
+
+
 ```
 
 

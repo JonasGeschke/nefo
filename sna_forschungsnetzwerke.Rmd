@@ -187,6 +187,19 @@ V(fn2_cut)$degree <- degree(fn2_cut)
 V(fn2_cut)$betweenness <- betweenness(fn2_cut, directed = F)
 
 detach("package:igraph", unload=TRUE)
+
+forschungsnetzwerke <- links_fn1
+nodes_rows <- c(1:nrow(nodes_fn1))
+links_rows <- c(1:nrow(links_fn1))
+for(i in links_rows){
+  for(r in nodes_rows){
+    if(forschungsnetzwerke[i,1] == nodes_fn1[r,1]){
+      forschungsnetzwerke[i,1] <- nodes_fn1[r,2]}
+    if(forschungsnetzwerke[i,2] == nodes_fn1[r,1]){
+      forschungsnetzwerke[i,2] <- nodes_fn1[r,2]}
+}}
+write.csv2(forschungsnetzwerke, "forschungsnetzwerke_namen.csv")
+
 ```
 
 ```{r SNA, eval=FALSE}
