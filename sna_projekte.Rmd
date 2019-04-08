@@ -357,15 +357,17 @@ for(n in files){
   }
 }
 
-Raw_gepris <- gepris[,-c(3,4)]
+gepris <- gepris[,-c(3,4)]
 
-#write.csv2(gepris, file = "gepris.csv")
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R/Daten")
+write.csv2(Raw_gepris, file = "gepris.csv", na = "NA")
 
 rm(a, add_columns, c, check, column_names, contentno, descr, files, n, name, p, title, value, gepris)
-setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R")
 ```
 
 ```{r Laden und Vorbereitung des Förderkatalogs, eval=FALSE}
+setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R/")
+
 library(xlsx)
 ## Load raw data
 #Raw_projects_FA <- read.csv2("Daten/Suchergebnisse_FA_form.csv", sep=";", dec=",", header=T, stringsAsFactors=F)
@@ -466,6 +468,8 @@ for(r in zeilen){
 gepris$von <- laufzeit[,1] # von
 gepris$bis <- laufzeit[,2] # bis
 rm(laufzeit,r)
+
+write.csv2(gepris, file = "gepris_formatiert.csv", na = "NA")
 
 gepris_antragsteller <- Raw_gepris[,c(9,11,12,20,24,25,36,41,42,49)] ##### HIER ÜBERPRÜFEN
 gepris_antragsteller_spalten <- c(1:ncol(gepris_antragsteller))

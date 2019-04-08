@@ -363,18 +363,23 @@ create_links_workshops_2mode <- function(Gdata){
   columns_Gdata <- c(1:ncol(Gdata))
   rows_Gdata <- c(1:nrow(Gdata))
   
-  links <- data.frame(from=character(), to=character(), type=character(), no_participants=numeric(), stringsAsFactors = FALSE)
+  links <- data.frame(from=character(), 
+                      to=character(), 
+                      type=character(), 
+                      workshop=character(), 
+                      no_participants=numeric(), 
+                      stringsAsFactors = FALSE)
   
   for (c in columns_Gdata){
     for (r in rows_Gdata){
       if (Gdata[r,c]!=0){
         links <- rbind(links,
-                       c(w3[c], w4[r], "participated", Gdata[r,c]),
+                       c(w3[c], w4[r], "participated", w1[c], Gdata[r,c]),
                        stringsAsFactors = FALSE)
       } else {}
     }
   }
-  colnames(links) <- c("from", "to", "type", "no_participants")
+  colnames(links) <- c("from", "to", "type", "workshop", "no_participants")
   links$no_participants <- as.numeric(links$no_participants)
   
   return(links)
@@ -437,9 +442,9 @@ for (c in columnno5){
 }
 any(is.na(Gdata_WS[,c(5:ncol(Gdata_WS))]))
 
-length(unique(abbr[,3]))
+length(unique(abbr[,2]))
 length(unique(Gdata_WS[,2]))
-#toadd <- as.vector(Gdata_WS[which(unique(Gdata_WS[,2]) %!in% unique(abbr[,3])),2])
+#toadd <- as.vector(Gdata_WS[which(unique(Gdata_WS[,2]) %!in% unique(abbr[,2])),2])
 
 rowno <- c(1:nrow(Gdata_WS))
 for (r in rowno){
@@ -451,6 +456,9 @@ for (r in rowno){
     Gdata_WS[r,4] <- "Verbaende"}
 }
 rm(c, columnno5, r, rowno)
+
+unique(Gdata_WS$Kategorie)
+length(unique(Gdata_WS$Kategorie))
 ```
 
 ```{r Subset der Daten, eval=FALSE}
@@ -480,7 +488,7 @@ V(ws2)$betweenness <- betweenness(ws2, directed = F)
 detach("package:igraph", unload=TRUE)
 ```
 
-```{r SNA EDIT, eval=FALSE}
+```{r SNA, eval=FALSE}
 library(igraph)
 
 workshops_sna <- data.frame(name = append(colnames(Gdata[-c(1:4)]),V(ws1)$name))
@@ -502,16 +510,16 @@ workshops_sna[,6] <- igraph::degree(ws2)[1:length(V(ws2)$name)]
 workshops_sna[,7] <- round((igraph::betweenness(ws2)[1:length(V(ws2)$name)]),digits=2)
 #workshops_sna[rows2,7] <- round((igraph::betweenness(ws2)[(nrow(Gdata)+1):nrow(workshops_sna)]),digits=2)
 
-
-################################## NEEDS EDIT
 workshops_sna$degree1rel <- NA
 workshops_sna$betweenness1rel <- NA
 workshops_sna$degree2rel <- NA
 workshops_sna$betweenness2rel <- NA
 workshops_sna[rows1,8] <- round(workshops_sna[rows1,4] / max(workshops_sna[rows1,4]),digits=2) # degree1
-workshops_sna[rows1,9] <- round(workshops_sna[,5] / max(workshops_sna[,5]),digits=2) # betweenness1
-workshops_sna[,10] <- round(workshops_sna[rows1,6] / max(workshops_sna[rows1,6]),digits=2) # degree2
+workshops_sna[rows1,9] <- round(workshops_sna[rows1,5] / max(workshops_sna[rows1,5]),digits=2) # betweenness1
+workshops_sna[,10] <- round(workshops_sna[,6] / max(workshops_sna[,6]),digits=2) # degree2
 workshops_sna[,11] <- round(workshops_sna[,7] / max(workshops_sna[,7]),digits=2) # betweenness2
+
+workshops_sna[,3] <- nodes_ws2$kategorie
 
 rm(rows1, rows2)
 xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_2010-2018.xls") ### EDIT
@@ -533,6 +541,8 @@ length(which(V(ws2)$kategorie == "Wirtschaft"))
 length(which(V(ws2)$kategorie == "Verbaende"))
 length(which(V(ws2)$kategorie == "Medien"))
 length(which(V(ws2)$kategorie == "keine Angabe"))
+length(which(V(ws2)$kategorie == "Bildung"))
+length(which(V(ws2)$kategorie == "Kirche"))
 
 detach("package:igraph", unload=TRUE)
 ```
@@ -541,15 +551,16 @@ detach("package:igraph", unload=TRUE)
 WS_av <- WS_info[-c(24,28,31,39),]
 WS_av$TN <- NA
 
-for (ws in c(1:37)){
-  WS_av[ws,7] <- nrow(subset(links_ws2, links_ws2$from == paste("ws", ws, sep = "")))
+for (ws in c(WS_av$ID)){
+  WS_av[which(WS_av$ID == ws),8] <- nrow(subset(links_ws2, links_ws2$workshop == ws))
 }
 
-sum(WS_av[which(WS_av$Jahr == "2018"),7])
+sum(WS_av[which(WS_av$Jahr == "2018"),8])
 
 zeitlich_ws <- xlsx::read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 2, encoding="UTF-8")
 workshops <- c(paste("WS", zeitlich_ws[,1], sep = ""))
 rows <- c(1:nrow(zeitlich_ws))
+rows <- rows[-42]
 for (r in rows){
   ws <- paste("WS", zeitlich_ws[r,1], sep = "")
   ss <- subset(links_ws1, links_ws1$network == ws)
@@ -563,6 +574,8 @@ for (r in rows){
   zeitlich_ws[r,5] <- length(which(ss$kategorie == "Verbaende"))
   zeitlich_ws[r,6] <- length(which(ss$kategorie == "Medien"))
   zeitlich_ws[r,7] <- length(which(ss$kategorie == "keine Angabe"))
+  zeitlich_ws[r,8] <- length(which(ss$kategorie == "Bildung"))
+  zeitlich_ws[r,9] <- length(which(ss$kategorie == "Kirche"))
 }
 rm(rows, r, k, ss, ws)
 zeitlich_ws$Institutionen <- rowSums(zeitlich_ws[,c(2:7)])
@@ -572,6 +585,8 @@ zeitlich_ws$Wirtschaft_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Wi
 zeitlich_ws$Verbaende_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Verbaende, digits = 0)
 zeitlich_ws$Medien_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Medien, digits = 0)
 zeitlich_ws$keine_Angabe_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$keine_Angabe, digits = 0)
+zeitlich_ws$Bildung_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Bildung, digits = 0)
+zeitlich_ws$Kirche_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Kirche, digits = 0)
 ```
 
 
@@ -603,6 +618,39 @@ plot <- barplot(plotK$n, col = c(rgb(92,139,255,max=255), #[-6,]
 text(x = plot, y = plotK$n, label = plotK$n, pos = 3, cex = 1.5, col = "black") #0.8
 
 detach("package:igraph", unload=TRUE)
+```
+
+```{r Prozentual Institutionen pro Kategorie - Barplot, eval=FALSE}
+#par(mar=c(5.1, 4.1, 4.1, 10.1), xpd=TRUE)
+par(mar=c(5, 4, 4, 10), xpd=TRUE)
+xy <- barplot(prop.table(t(zeitlich_ws[,c(2,3,4,5,6,8,9,7)]), 2)*100,
+        xaxt = "n",
+        col = c(rgb(92,139,255,max=255), 
+                rgb(219,174,0,max=255), 
+                rgb(11,33,94,max=255), 
+                rgb(0,155,68,max=255), 
+                rgb(180,33,0,max=255),
+                rgb(162,205,90,max=255),
+                rgb(127,127,127,max=255),
+                rgb(255,161,213,max=255)))
+abline(h = 50, lty = 2, xpd=F)
+abline(h = mean(zeitlich_ws$Wissenschaft_rel, na.rm = TRUE), lty = 3, xpd=F)
+text(cex=1, x=max(xy)+3, y=mean(zeitlich_ws$Wissenschaft_rel, na.rm = TRUE), "Ø Wissenschaft", xpd=TRUE, pos = 4)
+text(cex=1, x=max(xy)+3, y=50, "50%", xpd=TRUE, pos = 4)
+text(cex=1, x=-2, y=-5, "%", xpd=TRUE, srt=90)
+text(cex=1, x=xy, y=-5, workshops, xpd=TRUE, srt=90)
+text(cex=0.8, x=xy[42], y=5, "Keine Daten", xpd=TRUE, srt=90)
+legend("bottomright", inset=c(-0.4,0),
+       legend = c("Keine Angabe", "Kirche", "Bildung", "Medien", "Verbände", "Wirtschaft", "Behörde", "Wissenschaft"),
+       fill = c(rgb(255,161,213,max=255),
+                rgb(127,127,127,max=255),
+                rgb(162,205,90,max=255),
+                rgb(180,33,0,max=255),
+                rgb(0,155,68,max=255),
+                rgb(11,33,94,max=255),
+                rgb(219,174,0,max=255),
+                rgb(92,139,255,max=255)),
+       bty = "n")
 ```
 
 ```{r zeitlich, eval=FALSE}
@@ -745,31 +793,6 @@ legend("topright", legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbän
                rgb(11,33,94,max=255), rgb(0,155,68,max=255), rgb(180,33,0,max=255), "dark grey"),
        bty = "n", cex = 1)
 
-par(mar=c(5.1, 4.1, 4.1, 10.1), xpd=TRUE)
-xy <- barplot(prop.table(t(zeitlich_ws[,c(2:7)]), 2)*100,
-        xaxt = "n",
-        col = c(rgb(92,139,255,max=255), 
-                rgb(219,174,0,max=255), 
-                rgb(11,33,94,max=255), 
-                rgb(0,155,68,max=255), 
-                rgb(180,33,0,max=255), 
-                rgb(255,161,213,max=255)))
-abline(h = 50, lty = 2, xpd=F)
-abline(h = mean(zeitlich_ws$Wissenschaft_rel), lty = 3, xpd=F)
-text(cex=1, x=max(xy)+3, y=mean(zeitlich_ws$Wissenschaft_rel), "Ø Wissenschaft", xpd=TRUE, pos = 4)
-text(cex=1, x=max(xy)+3, y=50, "50%", xpd=TRUE, pos = 4)
-text(cex=1, x=-2, y=-5, "%", xpd=TRUE, srt=90)
-text(cex=1, x=xy, y=-5, workshops, xpd=TRUE, srt=90)
-legend("topright", inset=c(-0.3,0),
-       legend = c("Wissenschaft", "Behörde", "Wirtschaft", "Verbände", "Medien", "keine Angabe"),
-       fill = c(rgb(92,139,255,max=255), 
-                rgb(219,174,0,max=255), 
-                rgb(11,33,94,max=255), 
-                rgb(0,155,68,max=255), 
-                rgb(180,33,0,max=255), 
-                rgb(255,161,213,max=255)),
-       bty = "n")
-
 detach("package:xlsx", unload=TRUE)
 ```
 
@@ -835,7 +858,9 @@ lyout_ws <- layout.fruchterman.reingold(ws2)
 
 ## Farben und Größe
 E(ws2)$color_st <- "grey"
-E(ws2)$color_k <- "grey"
+E(ws2)$color_k[E(ws2)$no_participants > 6] <- "black"
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey"
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- "light grey"
 V(ws2)$color_st[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
 V(ws2)$color_st[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
 V(ws2)$color_k[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
@@ -847,9 +872,10 @@ V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Bildung"] <- rgb(162,205,90,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "Kirche"] <- rgb(127,127,127,max=255)
 V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
-V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 1 # Workshops
-V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5 # Institutionen
-V(ws2)$vertex.size <- 3 * V(ws2)$degree / max(V(ws2)$degree) + 5
+V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 1
+V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5
+V(ws2)$vertex.size[V(ws2)$type == "workshop"] <- 2
+V(ws2)$vertex.size[V(ws2)$type == "institution"] <- 2 * V(ws1)$betweenness / max(V(ws1)$betweenness) + 2
 V(ws2)$instnames <- V(ws2)$name
 V(ws2)$instnames[V(ws2)$type == "workshop"] <- NA
 V(ws2)$wsnames <- V(ws2)$name
@@ -875,11 +901,11 @@ plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_st,
 
 ## Workshops: Kategorien
 par(mfrow=c(1,1))
-plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
+plot(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
-legend(-1.6,-0.3, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "Wirtschaft", 
+legend(-1.6,1, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "Wirtschaft", 
                                                   "Verbände", "Medien", "Bildung", 
                                                   "Kirche", "keine Angabe"), 
        fill = c(rgb(92,139,255,max=255),
