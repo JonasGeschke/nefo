@@ -94,7 +94,7 @@ subset_workshops <- function(Gdata, subset = c(years)){
       }
     }
     
-    Gdata_new <- subset(Gdata_new, Gdata_new$Land == "Deutschland")
+#    Gdata_new <- subset(Gdata_new, Gdata_new$Land == "Deutschland")
     Gdata_new <- Gdata_new[order(Gdata_new$Inst, Gdata_new$Name),]
     Gdata_new <- subset(Gdata_new, rowSums(Gdata_new[5:ncol(Gdata_new)]) != 0)
 #   Gdata_new$overview <- apply(Gdata_new[,c(5:ncol(Gdata_new))], 1, paste, collapse = "-")
@@ -403,7 +403,7 @@ setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_NeFo/R")
 detach("package:xlsx", unload=TRUE)
 ```
 
-```{r Vorbereitung der Daten, eval=FALSE}
+```{r Vorbereitung der Daten - RUN, eval=FALSE}
 ## Edit WS info
 WS_info <- Raw_workshops_info
 WS_info <- WS_info[,-c(6,9:ncol(WS_info))]
@@ -472,11 +472,37 @@ library(igraph)
 # 1-mode
 nodes_ws1 <- create_nodes_workshops_1mode(Gdata)
 links_ws1 <- create_links_workshops_1mode(Gdata)
+if("Land" %in% names(Gdata)){
+  nodes_ws1$land <- NA
+  for(n in c(1:nrow(nodes_ws1))){
+    for(g in c(1:nrow(Gdata))){
+      if(nodes_ws1[n,2] == Gdata[g,2]){
+        nodes_ws1[n,6] <- Gdata[g,3]
+      }
+      if(grepl('Selbstständig', nodes_ws1[n,2])){
+        nodes_ws1[n,6] <- "Deutschland"
+      }
+    }
+  }
+}
 ws1 <- graph_from_data_frame(d = links_ws1, vertices = nodes_ws1, directed = F)
 
 # 2-mode
 nodes_ws2 <- create_nodes_workshops_2mode(Gdata)
 links_ws2 <- create_links_workshops_2mode(Gdata)
+if("Land" %in% names(Gdata)){
+  nodes_ws2$land <- NA
+  for(n in c(1:nrow(nodes_ws2))){
+    for(g in c(1:nrow(Gdata))){
+      if(nodes_ws2[n,2] == Gdata[g,2]){
+        nodes_ws2[n,6] <- Gdata[g,3]
+      }
+      if(grepl('Selbstständig', nodes_ws2[n,2])){
+        nodes_ws2[n,6] <- "Deutschland"
+      }
+    }
+  }
+}
 ws2 <- graph_from_data_frame(d = links_ws2, vertices = nodes_ws2, directed = F)
 
 # Berechnung statistischer Standardwerte
@@ -522,7 +548,7 @@ workshops_sna[,11] <- round(workshops_sna[,7] / max(workshops_sna[,7]),digits=2)
 workshops_sna[,3] <- nodes_ws2$kategorie
 
 rm(rows1, rows2)
-xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_2010-2018.xls") ### EDIT
+#xlsx::write.xlsx(workshops_sna, file = "SNA_Statistik_Workshops_2010-2018_international.xls") ### EDIT
 
 igraph::graph.density(ws1)
 
@@ -858,9 +884,9 @@ lyout_ws <- layout.fruchterman.reingold(ws2)
 
 ## Farben und Größe
 E(ws2)$color_st <- "grey"
-E(ws2)$color_k[E(ws2)$no_participants > 6] <- "black"
-E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey"
-E(ws2)$color_k[E(ws2)$no_participants == 1] <- "light grey"
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  "black" #rgb(0,0,0,max=255,alpha=1)
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey" #rgb(169,169,169,max=255,alpha=0.8)
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- "light grey" #rgb(211,211,211,max=255,aplha=0.5)
 V(ws2)$color_st[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
 V(ws2)$color_st[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
 V(ws2)$color_k[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
@@ -881,7 +907,9 @@ V(ws2)$instnames[V(ws2)$type == "workshop"] <- NA
 V(ws2)$wsnames <- V(ws2)$name
 V(ws2)$wsnames[V(ws2)$type == "institution"] <- NA
 V(ws2)$framecolorcover <- NA
-V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
+#V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
+V(ws2)$framecolorcover[V(ws2)$land == "Deutschland"] <- "black"
+V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
 
 ## Workshops
 par(mfrow=c(1,1))
