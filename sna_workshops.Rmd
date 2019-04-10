@@ -659,6 +659,10 @@ xy <- barplot(prop.table(t(zeitlich_ws[,c(2,3,4,5,6,8,9,7)]), 2)*100,
                 rgb(162,205,90,max=255),
                 rgb(127,127,127,max=255),
                 rgb(255,161,213,max=255)))
+#abline(glm(zeitlich_ws$Wissenschaft_rel ~ zeitlich_ws$Workshop), col = rgb(92,139,255,max=255), lty = 6, lwd = 2, xpd=F)
+#abline(glm(zeitlich_ws$Behoerde_rel ~ zeitlich_ws$Workshop), col = rgb(219,174,0,max=255), lty = 6, lwd = 2, xpd=F)
+#abline(glm(zeitlich_ws$Wirtschaft_rel ~ zeitlich_ws$Workshop), col = rgb(11,33,94,max=255), lty = 6, lwd = 2, xpd=F)
+#abline(glm(zeitlich_ws$Verbaende_rel ~ zeitlich_ws$Workshop), col = rgb(0,155,68,max=255), lty = 6, lwd = 2, xpd=F)
 abline(h = 50, lty = 2, xpd=F)
 abline(h = mean(zeitlich_ws$Wissenschaft_rel, na.rm = TRUE), lty = 3, xpd=F)
 text(cex=1, x=max(xy)+3, y=mean(zeitlich_ws$Wissenschaft_rel, na.rm = TRUE), "Ø Science", xpd=TRUE, pos = 4)
