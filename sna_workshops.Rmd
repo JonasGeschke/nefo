@@ -884,20 +884,20 @@ lyout_ws <- layout.fruchterman.reingold(ws2)
 
 ## Farben und Größe
 E(ws2)$color_st <- "grey"
-E(ws2)$color_k[E(ws2)$no_participants > 6] <-  "black" #rgb(0,0,0,max=255,alpha=1)
-E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey" #rgb(169,169,169,max=255,alpha=0.8)
-E(ws2)$color_k[E(ws2)$no_participants == 1] <- rgb(211,211,211,max=255,alpha=0.5) #"light grey" #
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  "black" #rgb(0,0,0,maxColorValue=255,alpha=1)
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey" #rgb(169,169,169,maxColorValue=255,alpha=0.8)
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- rgb(211,211,211,maxColorValue=255,alpha=0.5) #"light grey" #
 V(ws2)$color_st[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
 V(ws2)$color_st[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
 V(ws2)$color_k[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
-V(ws2)$color_k[V(ws2)$kategorie == "Wissenschaft"] <- rgb(92,139,255,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "Behoerde"] <- rgb(219,174,0,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "Bildung"] <- rgb(162,205,90,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "Kirche"] <- rgb(127,127,127,max=255)
-V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,max=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Wissenschaft"] <- rgb(92,139,255,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Behoerde"] <- rgb(219,174,0,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Wirtschaft"] <- rgb(11,33,94,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Verbaende"] <- rgb(0,155,68,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Medien"] <- rgb(180,33,0,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Bildung"] <- rgb(162,205,90,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "Kirche"] <- rgb(127,127,127,maxColorValue=255)
+V(ws2)$color_k[V(ws2)$kategorie == "keine Angabe"] <- rgb(255,161,213,maxColorValue=255)
 V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 1
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5
 V(ws2)$vertex.size[V(ws2)$type == "workshop"] <- 2
@@ -913,12 +913,13 @@ V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
 
 ## Workshops: Kategorien
 pdf("Rplot_international_test.pdf", paper = "a4r")
+#cairo_pdf("Rplot_international_test.pdf")
 par(mfrow=c(1,1))
-plot(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
+plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
-legend(-1.6,1, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "Wirtschaft", 
+legend(-1.6,-0.2, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "Wirtschaft", 
                                                   "Verbände", "Medien", "Bildung", 
                                                   "Kirche", "keine Angabe"), 
        fill = c(rgb(92,139,255,max=255),
