@@ -66,6 +66,14 @@ as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
+add.alpha <- function(col, alpha=1){
+  if(missing(col))
+    stop("Please provide a vector of colours.")
+  apply(sapply(col, col2rgb)/255, 2, 
+                     function(x) 
+                       rgb(x[1], x[2], x[3], alpha=alpha))  
+}
+
 delete.isolates <- function(graph, mode = "all"){
   isolates <- which(degree(graph, mode = mode) == 0)
   delete.vertices(graph, isolates)
@@ -890,7 +898,7 @@ lyout_ws <- layout.fruchterman.reingold(ws2)
 E(ws2)$color_st <- "grey"
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  "black" #rgb(0,0,0,maxColorValue=255,alpha=1)
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey" #rgb(169,169,169,maxColorValue=255,alpha=0.8)
-E(ws2)$color_k[E(ws2)$no_participants == 1] <- rgb(211,211,211,maxColorValue=255,alpha=0.5) #"light grey" #
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- "light grey" #add.alpha("light grey", alpha = 0.3)
 V(ws2)$color_st[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
 V(ws2)$color_st[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
 V(ws2)$color_k[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
@@ -914,6 +922,56 @@ V(ws2)$framecolorcover <- NA
 #V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
 V(ws2)$framecolorcover[V(ws2)$land == "Deutschland"] <- "black"
 V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
+
+
+## Cluster analysis
+#clp <- cluster_label_prop(ws2)
+#length(clp)
+#membership(clp)
+#modularity(clp)
+
+output <- list()
+for(i in c(1:1000)){
+result <- cluster_label_prop(ws2)
+output <- c(output, list(result))
+}
+median(lengths(output))
+boxplot(lengths(output))
+output <- output[-which(lengths(output) != median(lengths(output)))]
+
+repeat {
+  clp <- cluster_label_prop(ws2)
+  if (length(clp) == median(lengths(output))){
+    break
+    }
+}
+
+V(ws2)$community <- clp$membership
+V(ws2)$wsnames <- V(ws2)$name
+V(ws2)$wsnames[V(ws2)$type == "institution"] <- NA
+V(ws2)$wsnames[V(ws2)$community == 1] <- NA
+colrs <- brewer.pal(n = length(clp), name = "Paired")
+V(ws2)$comm_col <- colrs[V(ws2)$community]
+V(ws2)$comm_col[V(ws2)$type == "workshop"] <- "dark grey"
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col,
+     vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
+     mark.border = NA, mark.col = add.alpha(colrs, alpha = 0.3),
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws)
+
+
+
+
+for(i in 1:nrow(nodes_ws2)){
+  for(l in 1:median(lengths(output))){
+    test <- vector()
+    add <- membership(output[[l]])[i]
+    test <- c(test, add)
+  }
+  V(ws2)$community_model[V(ws2)$name == names(membership(output[[l]])[i])] <- median(test)
+}
+#EDIT
+
 
 ## Workshops: Kategorien
 pdf("Rplot_international_test.pdf", paper = "a4r")
