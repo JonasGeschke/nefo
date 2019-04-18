@@ -74,6 +74,32 @@ add.alpha <- function(col, alpha=1){
                        rgb(x[1], x[2], x[3], alpha=alpha))  
 }
 
+clp_model <- function(graph, times = 100){
+  library(igraph)
+  
+  output <- list()
+  for(i in c(1:times)){
+  result <- cluster_label_prop(ws2)
+  output <- c(output, list(result))
+  }
+  median(lengths(output))
+  boxplot(lengths(output), col = "light grey", outpch = 3)
+  output <- output[-which(lengths(output) != median(lengths(output)))]
+  
+  for(i in 1:nrow(nodes_ws2)){
+    for(l in 1:median(lengths(output))){
+      test <- vector()
+      add <- membership(output[[l]])[i]
+      test <- c(test, add)
+    }
+    V(ws2)$community_model[V(ws2)$name == names(membership(output[[l]])[i])] <- median(test)
+  }
+  
+  clp <- make_clusters(ws2, membership = V(ws2)$community_model)
+  
+  return(clp)
+}
+
 delete.isolates <- function(graph, mode = "all"){
   isolates <- which(degree(graph, mode = mode) == 0)
   delete.vertices(graph, isolates)
@@ -919,61 +945,35 @@ V(ws2)$instnames[V(ws2)$type == "workshop"] <- NA
 V(ws2)$wsnames <- V(ws2)$name
 V(ws2)$wsnames[V(ws2)$type == "institution"] <- NA
 V(ws2)$framecolorcover <- NA
-#V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
-V(ws2)$framecolorcover[V(ws2)$land == "Deutschland"] <- "black"
-V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
+V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
 
 
 ## Cluster analysis
-#clp <- cluster_label_prop(ws2)
 #length(clp)
 #membership(clp)
 #modularity(clp)
 
-output <- list()
-for(i in c(1:1000)){
-result <- cluster_label_prop(ws2)
-output <- c(output, list(result))
-}
-median(lengths(output))
-boxplot(lengths(output))
-output <- output[-which(lengths(output) != median(lengths(output)))]
-
-repeat {
-  clp <- cluster_label_prop(ws2)
-  if (length(clp) == median(lengths(output))){
-    break
-    }
-}
-
-V(ws2)$community <- clp$membership
+clp <- clp_model(ws2, times = 10000)
+WS_info[c(1:23,25:27,29:30,32:38,40:45,47), 8] <- V(ws2)$community_model[1:42]
+#V(ws2)$community <- clp$membership
 V(ws2)$wsnames <- V(ws2)$name
 V(ws2)$wsnames[V(ws2)$type == "institution"] <- NA
-V(ws2)$wsnames[V(ws2)$community == 1] <- NA
+V(ws2)$wsnames[V(ws2)$community_model == 1] <- NA
 colrs <- brewer.pal(n = length(clp), name = "Paired")
-V(ws2)$comm_col <- colrs[V(ws2)$community]
+colrs <- c("green", "blue", "#7947d5", "#739fcd", "#4d378f", "#867dd6", "#494f7d", "khaki", "peru")
+V(ws2)$comm_col <- colrs[V(ws2)$community_model]
 V(ws2)$comm_col[V(ws2)$type == "workshop"] <- "dark grey"
 plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col,
      vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
+     vertex.frame.color = V(ws2)$framecolorcover, 
      mark.border = NA, mark.col = add.alpha(colrs, alpha = 0.3),
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 
 
-
-
-for(i in 1:nrow(nodes_ws2)){
-  for(l in 1:median(lengths(output))){
-    test <- vector()
-    add <- membership(output[[l]])[i]
-    test <- c(test, add)
-  }
-  V(ws2)$community_model[V(ws2)$name == names(membership(output[[l]])[i])] <- median(test)
-}
-#EDIT
-
-
 ## Workshops: Kategorien
+V(ws2)$framecolorcover[V(ws2)$land == "Deutschland"] <- "black"
+V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
 pdf("Rplot_international_test.pdf", paper = "a4r")
 #cairo_pdf("Rplot_international_test.pdf")
 par(mfrow=c(1,1))
