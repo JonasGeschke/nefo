@@ -79,23 +79,23 @@ clp_model <- function(graph, times = 100){
   
   output <- list()
   for(i in c(1:times)){
-  result <- cluster_label_prop(ws2)
+  result <- cluster_label_prop(graph)
   output <- c(output, list(result))
   }
   median(lengths(output))
   boxplot(lengths(output), col = "light grey", outpch = 3)
   output <- output[-which(lengths(output) != median(lengths(output)))]
   
-  for(i in 1:nrow(nodes_ws2)){
+  for(i in 1:length(V(graph)$name)){
     for(l in 1:median(lengths(output))){
       test <- vector()
       add <- membership(output[[l]])[i]
       test <- c(test, add)
     }
-    V(ws2)$community_model[V(ws2)$name == names(membership(output[[l]])[i])] <- median(test)
+    V(graph)$community_model[V(graph)$name == names(membership(output[[l]])[i])] <- median(test)
   }
   
-  clp <- make_clusters(ws2, membership = V(ws2)$community_model)
+  clp <- make_clusters(graph, membership = V(graph)$community_model)
   
   return(clp)
 }
