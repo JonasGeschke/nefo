@@ -74,31 +74,48 @@ add.alpha <- function(col, alpha=1){
                        rgb(x[1], x[2], x[3], alpha=alpha))  
 }
 
-clp_model <- function(graph, times = 100){
+clp_model <- function(graph, times = 100, value = "median"){
   library(igraph)
-  
+  if(value %!in% c("median", "mostoften")){
+    print("Please select what value to use for the community selection: median or mostoften")}
+  else {
+
   output <- list()
-  for(i in c(1:times)){
+  for(i in c(1:(times*10))){
   result <- cluster_label_prop(graph)
   output <- c(output, list(result))
   }
   median(lengths(output))
   boxplot(lengths(output), col = "light grey", outpch = 3)
-  output <- output[-which(lengths(output) != median(lengths(output)))]
+  
+  output2 <- list()
+  repeat{
+  result2 <- cluster_label_prop(graph)
+  output2 <- c(output2, list(result2))
+  if(length(which(lengths(output2) == median(lengths(output2)))) == times){break}
+  }
+  
+  output <- output2[-which(lengths(output2) != median(lengths(output2)))]
+  rm(output2)
   
   for(i in 1:length(V(graph)$name)){
+    test <- vector()
     for(l in 1:median(lengths(output))){
-      test <- vector()
       add <- membership(output[[l]])[i]
       test <- c(test, add)
     }
-    V(graph)$community_model[V(graph)$name == names(membership(output[[l]])[i])] <- median(test)
-  }
+    if(value == "median"){
+      V(graph)$community_model[V(graph)$name == names(membership(output[[l]])[i])] <- median(test)}
+    else
+    if(value == "mostoften"){
+      V(graph)$community_model[V(graph)$name == names(membership(output[[l]])[i])] <- as.numeric(names(
+         which.max(sort(table(test),decreasing = T))))}
+    }
   
   clp <- make_clusters(graph, membership = V(graph)$community_model)
   
   return(clp)
-}
+}}
 
 delete.isolates <- function(graph, mode = "all"){
   isolates <- which(degree(graph, mode = mode) == 0)
@@ -519,6 +536,7 @@ if("Land" %in% names(Gdata)){
     }
   }
 }
+rm(g, n)
 ws1 <- graph_from_data_frame(d = links_ws1, vertices = nodes_ws1, directed = F)
 
 # 2-mode
@@ -537,6 +555,7 @@ if("Land" %in% names(Gdata)){
     }
   }
 }
+rm(g, n)
 ws2 <- graph_from_data_frame(d = links_ws2, vertices = nodes_ws2, directed = F)
 
 # Berechnung statistischer Standardwerte
@@ -547,6 +566,13 @@ V(ws2)$betweenness <- betweenness(ws2, directed = F)
 
 detach("package:igraph", unload=TRUE)
 ```
+
+```{r Cluster-analysis, eval=FALSE}
+clp <- clp_model(ws2, times = 1000, value = "median")
+V(ws2)$community_model <- membership(clp)
+WS_info[c(1:23,25:27,29:30,32:38,40:45,47),8] <- V(ws2)$community_model[1:42]
+```
+
 
 ```{r SNA, eval=FALSE}
 library(igraph)
@@ -894,7 +920,7 @@ cor.test(regr2$degree,regr2$betweenness,method="spearman")
 library(igraph)
 library(RColorBrewer)
 
-# Berechnung einer Farbpalette ### CHOOSE
+# Berechnung einer Farbpalette
 coul7 <- brewer.pal(7, "YlOrBr")
 palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
 palette_ws1[which(palette_ws1 %in% c(1:50))] <- 1
@@ -906,25 +932,25 @@ palette_ws1[palette_ws1 %in% c(401:500)] <- 6
 palette_ws1[palette_ws1 > 500] <- 7
 farben_ws1 <- coul7[palette_ws1]
 
-coul7 <- brewer.pal(7, "YlOrBr")
-palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
-palette_ws1[which(palette_ws1 == 1)] <- 1
-palette_ws1[which(palette_ws1 %in% c(2:10))] <- 2
-palette_ws1[palette_ws1 %in% c(11:20)] <- 3
-palette_ws1[palette_ws1 %in% c(21:30)] <- 4
-palette_ws1[palette_ws1 %in% c(31:40)] <- 5
-palette_ws1[palette_ws1 %in% c(41:50)] <- 6
-palette_ws1[palette_ws1 > 50] <- 7
-farben_ws1 <- coul7[palette_ws1]
+#coul7 <- brewer.pal(7, "YlOrBr")
+#palette_ws1 <- as.numeric(degree(ws1))  # Farbpalette entsprechend vertex.size
+#palette_ws1[which(palette_ws1 == 1)] <- 1
+#palette_ws1[which(palette_ws1 %in% c(2:10))] <- 2
+#palette_ws1[palette_ws1 %in% c(11:20)] <- 3
+#palette_ws1[palette_ws1 %in% c(21:30)] <- 4
+#palette_ws1[palette_ws1 %in% c(31:40)] <- 5
+#palette_ws1[palette_ws1 %in% c(41:50)] <- 6
+#palette_ws1[palette_ws1 > 50] <- 7
+#farben_ws1 <- coul7[palette_ws1]
 
 # Plotten
 lyout_ws <- layout.fruchterman.reingold(ws2)
 
 ## Farben und Größe
 E(ws2)$color_st <- "grey"
-E(ws2)$color_k[E(ws2)$no_participants > 6] <-  "black" #rgb(0,0,0,maxColorValue=255,alpha=1)
-E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- "dark grey" #rgb(169,169,169,maxColorValue=255,alpha=0.8)
-E(ws2)$color_k[E(ws2)$no_participants == 1] <- "light grey" #add.alpha("light grey", alpha = 0.3)
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  add.alpha("black", alpha = 1)
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- add.alpha("black", alpha = 0.3)
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- add.alpha("light grey", alpha = 0.3)
 V(ws2)$color_st[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
 V(ws2)$color_st[V(ws2)$type == "institution"] <- farben_ws1 # Institutionen
 V(ws2)$color_k[V(ws2)$type == "workshop"] <- "dark grey" # Workshops
@@ -949,13 +975,6 @@ V(ws2)$framecolorcover[V(ws2)$type == "institution"] <- "black"
 
 
 ## Cluster analysis
-#length(clp)
-#membership(clp)
-#modularity(clp)
-
-clp <- clp_model(ws2, times = 10000)
-WS_info[c(1:23,25:27,29:30,32:38,40:45,47), 8] <- V(ws2)$community_model[1:42]
-#V(ws2)$community <- clp$membership
 V(ws2)$wsnames <- V(ws2)$name
 V(ws2)$wsnames[V(ws2)$type == "institution"] <- NA
 V(ws2)$wsnames[V(ws2)$community_model == 1] <- NA
@@ -963,24 +982,62 @@ colrs <- brewer.pal(n = length(clp), name = "Paired")
 colrs <- c("green", "blue", "#7947d5", "#739fcd", "#4d378f", "#867dd6", "#494f7d", "khaki", "peru")
 V(ws2)$comm_col <- colrs[V(ws2)$community_model]
 V(ws2)$comm_col[V(ws2)$type == "workshop"] <- "dark grey"
-plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col,
-     vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
-     vertex.frame.color = V(ws2)$framecolorcover, 
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- add.alpha("light grey", alpha = 0.3)
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA,
+     vertex.label = NA, vertex.label.family = "Calibri", vertex.label.color = "black",
+     vertex.frame.color = NA, 
      mark.border = NA, mark.col = add.alpha(colrs, alpha = 0.3),
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- add.alpha("black", alpha = 0.3)
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA,
+     vertex.label = NA, vertex.label.family = "Calibri", vertex.label.color = "black",
+     vertex.frame.color = NA, 
+     mark.border = NA, mark.col = NA,
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws, add = TRUE)
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  add.alpha("black", alpha = 1)
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col,
+     vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
+     vertex.frame.color = V(ws2)$framecolorcover, 
+     mark.border = NA, mark.col = NA,
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws, add = TRUE)
 
 
 ## Workshops: Kategorien
+V(ws2)$framecolorcover <- NA
 V(ws2)$framecolorcover[V(ws2)$land == "Deutschland"] <- "black"
 V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
-pdf("Rplot_international_test.pdf", paper = "a4r")
-#cairo_pdf("Rplot_international_test.pdf")
+#pdf("Rplot_international_test.pdf", paper = "a4r")
 par(mfrow=c(1,1))
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- add.alpha("light grey", alpha = 0.3)
 plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- add.alpha("black", alpha = 0.3)
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
+plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
+     vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws, add = TRUE)
+E(ws2)$color_k[E(ws2)$no_participants > 6] <-  add.alpha("black", alpha = 1)
+E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
+E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
+plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
+     vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
+     edge.arrow.size = 0, edge.color = E(ws2)$color_k,
+     layout = lyout_ws, add = TRUE)
 legend(-1.6,-0.2, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "Wirtschaft", 
                                                   "Verbände", "Medien", "Bildung", 
                                                   "Kirche", "keine Angabe"), 
@@ -993,8 +1050,12 @@ legend(-1.6,-0.2, title = "Kategorie", legend = c("Wissenschaft", "Behörde", "W
                 rgb(127,127,127,max=255),
                 rgb(255,161,213,max=255)), 
        bty = "n")
-dev.off()
+#dev.off()
 
+detach("package:igraph", unload=TRUE)
+detach("package:RColorBrewer", unload=TRUE)
+```
+```{r weitere igraph Visualisierungen, eval=FALSE}
 ## Workshops: Kategorien mit WS Name
 par(mfrow=c(1,1))
 plot(ws2, vertex.size = 3, vertex.color = V(ws2)$color_k,
@@ -1055,9 +1116,6 @@ plot(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_st,
      vertex.frame.color = V(ws2)$framecolorcover, vertex.label.color = "black",
      edge.arrow.size = 0,
      layout = lyout_ws)
-
-detach("package:igraph", unload=TRUE)
-detach("package:RColorBrewer", unload=TRUE)
 ```
 
 
