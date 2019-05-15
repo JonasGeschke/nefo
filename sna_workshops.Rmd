@@ -967,6 +967,8 @@ V(ws2)$label.cex[V(ws2)$type == "workshop"] <- 1
 V(ws2)$label.cex[V(ws2)$type == "institution"] <- 1.5 * V(ws1)$betweenness / max(V(ws1)$betweenness)+ 0.5
 V(ws2)$vertex.size[V(ws2)$type == "workshop"] <- 2
 V(ws2)$vertex.size[V(ws2)$type == "institution"] <- 2 * V(ws1)$betweenness / max(V(ws1)$betweenness) + 2
+V(ws2)$vertex.shape[V(ws2)$type == "workshop"] <- "square"
+V(ws2)$vertex.shape[V(ws2)$type == "institution"] <- "circle"
 V(ws2)$instnames <- V(ws2)$name
 V(ws2)$instnames[V(ws2)$type == "workshop"] <- NA
 V(ws2)$wsnames <- V(ws2)$name
@@ -988,7 +990,7 @@ V(ws2)$comm_col[V(ws2)$type == "workshop"] <- "dark grey"
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
 E(ws2)$color_k[E(ws2)$no_participants == 1] <- add.alpha("light grey", alpha = 0.3)
-plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA,
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA, vertex.shape = V(ws2)$vertex.shape,
      vertex.label = NA, vertex.label.family = "Calibri", vertex.label.color = "black",
      vertex.frame.color = NA, 
      mark.border = NA, mark.col = add.alpha(colrs, alpha = 0.3),
@@ -997,7 +999,7 @@ plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA,
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- add.alpha("black", alpha = 0.3)
 E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
-plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA,
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA, vertex.shape = V(ws2)$vertex.shape,
      vertex.label = NA, vertex.label.family = "Calibri", vertex.label.color = "black",
      vertex.frame.color = NA, 
      mark.border = NA, mark.col = NA,
@@ -1006,7 +1008,7 @@ plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = NA,
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  add.alpha("black", alpha = 1)
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
 E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
-plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col,
+plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col, vertex.shape = V(ws2)$vertex.shape,
      vertex.label = V(ws2)$wsnames, vertex.label.family = "Calibri", vertex.label.color = "black",
      vertex.frame.color = V(ws2)$framecolorcover, 
      mark.border = NA, mark.col = NA,
@@ -1041,41 +1043,49 @@ V(ws2)$framecolorcover[V(ws2)$land != "Deutschland"] <- "darkolivegreen"
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
 E(ws2)$color_k[E(ws2)$no_participants == 1] <- add.alpha("light grey", alpha = 0.3)
-plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
+plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k, vertex.shape = V(ws2)$vertex.shape,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws)
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  NA
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- add.alpha("black", alpha = 0.3)
 E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
-plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
+plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k, vertex.shape = V(ws2)$vertex.shape,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws, add = TRUE)
 E(ws2)$color_k[E(ws2)$no_participants > 6] <-  add.alpha("black", alpha = 1)
 E(ws2)$color_k[E(ws2)$no_participants %in% c(2:5)] <- NA
 E(ws2)$color_k[E(ws2)$no_participants == 1] <- NA
-plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k,
+plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k, vertex.shape = V(ws2)$vertex.shape,
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws, add = TRUE)
-legend(-1.6,-0.2, title = "Institution categories", legend = c("Science", "Public authority", "Industry", 
-                                                  "NGO", "Media", "Education", 
-                                                  "Church", "Others"), 
-       fill = c(rgb(92,139,255,max=255),
+legend(-1.6,-0.2, title = "Node types", legend = c("Institution: Science", "Institution: Public authority", "Institution: Industry", 
+                                                  "Institution: NGO", "Institution: Media", "Institution: Education", 
+                                                  "Institution: Church", "Institution: Others", "Workshop",
+                                                  "Institution from Germany", "Institution from abroad"), 
+       pch = c(21,21,21,21,21,21,21,21,22,1,1),
+       pt.cex = 1.5,
+       pt.bg = c(rgb(92,139,255,max=255),
                 rgb(219,174,0,max=255), 
                 rgb(11,33,94,max=255), 
                 rgb(0,155,68,max=255), 
                 rgb(180,33,0,max=255),
                 rgb(162,205,90,max=255),
                 rgb(127,127,127,max=255),
-                rgb(255,161,213,max=255)), 
+                rgb(255,161,213,max=255),
+                "dark grey", NA, NA),
+       col = c(NA, NA, NA, NA, NA, NA, NA, NA, NA,
+               "black", "darkolivegreen"),
+       pt.lwd = c(0,0,0,0,0,0,0,0,0,1.5,1.5),
        bty = "n")
 legend(-1.6,1.2, title = "Line types", legend = c(">5 participants", "2-5 participants", "1 participant"), 
        col = c(add.alpha("black", alpha = 1),
                add.alpha("black", alpha = 0.3),
                add.alpha("light grey", alpha = 0.3)),
        lty = c(1,1,1),
+       lwd = 1.5,
        bty = "n")
 #dev.off()
 
