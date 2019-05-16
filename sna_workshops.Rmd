@@ -568,7 +568,7 @@ detach("package:igraph", unload=TRUE)
 ```
 
 ```{r Cluster-analysis, eval=FALSE}
-clp10000 <- clp_model(ws2, times = 10000, value = "mostoften")
+clp10000 <- clp_model(ws2, times = 1000, value = "mostoften")
 clp <- clp10000
 V(ws2)$community_model <- membership(clp)
 WS_info[c(1:23,25:27,29:30,32:38,40:45,47),8] <- V(ws2)$community_model[1:42]
@@ -1014,7 +1014,7 @@ plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col, vertex.s
      mark.border = NA, mark.col = NA,
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws, add = TRUE)
-legend(-1.6,-0.2, title = "Cluster categories", legend = c("Biodiversity research Germany", 
+legend(-1.8,-0.2, title = "Cluster descriptition", legend = c("Biodiversity research Germany", 
                                                            "WS10: International expert workshop for IPBES",
                                                            "WS18: PESC-1", 
                                                            "WS23: PESC-2", 
@@ -1024,12 +1024,14 @@ legend(-1.6,-0.2, title = "Cluster categories", legend = c("Biodiversity researc
                                                            "WS40: Evening event on the concept of nature",
                                                            "WS44: Evening event on the human-nature relationship"), 
        fill = c("green", "blue", "#7947d5", "#739fcd", "#4d378f", "#867dd6", "#494f7d", "khaki", "peru"), # 7 und 8 vertauscht
+       border = NA,
        bty = "n")
-legend(-1.6,1.2, title = "Line types", legend = c(">5 participants", "2-5 participants", "1 participant"), 
+legend(-1.8,1.2, title = "Line types", legend = c(">5 participants", "2-5 participants", "1 participant"), 
        col = c(add.alpha("black", alpha = 1),
                add.alpha("black", alpha = 0.3),
                add.alpha("light grey", alpha = 0.3)),
        lty = c(1,1,1),
+       lwd = 1.5,
        bty = "n")
 #dev.off()
 
@@ -1061,7 +1063,7 @@ plot.igraph(ws2, vertex.size = V(ws2)$vertex.size, vertex.color = V(ws2)$color_k
      vertex.label = NA, vertex.frame.color = V(ws2)$framecolorcover, 
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws, add = TRUE)
-legend(-1.6,-0.2, title = "Node types", legend = c("Institution: Science", "Institution: Public authority", "Institution: Industry", 
+legend(-1.8,-0.2, title = "Node types", legend = c("Institution: Science", "Institution: Public authority", "Institution: Industry", 
                                                   "Institution: NGO", "Institution: Media", "Institution: Education", 
                                                   "Institution: Church", "Institution: Others", "Workshop",
                                                   "Institution from Germany", "Institution from abroad"), 
@@ -1080,7 +1082,7 @@ legend(-1.6,-0.2, title = "Node types", legend = c("Institution: Science", "Inst
                "black", "darkolivegreen"),
        pt.lwd = c(0,0,0,0,0,0,0,0,0,1.5,1.5),
        bty = "n")
-legend(-1.6,1.2, title = "Line types", legend = c(">5 participants", "2-5 participants", "1 participant"), 
+legend(-1.8,1.2, title = "Line types", legend = c(">5 participants", "2-5 participants", "1 participant"), 
        col = c(add.alpha("black", alpha = 1),
                add.alpha("black", alpha = 0.3),
                add.alpha("light grey", alpha = 0.3)),
