@@ -674,6 +674,9 @@ zeitlich_ws$Medien_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Medien
 zeitlich_ws$keine_Angabe_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$keine_Angabe, digits = 0)
 zeitlich_ws$Bildung_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Bildung, digits = 0)
 zeitlich_ws$Kirche_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Kirche, digits = 0)
+
+#xlsx::write.xlsx(zeitlich_ws, file = "workshops_zeitlich_2.xlsx") ### EDIT
+
 ```
 
 
@@ -777,6 +780,15 @@ legend("bottomright", inset=c(-0.38,0),
                 rgb(219,174,0,max=255),
                 rgb(92,139,255,max=255)),
        bty = "n")
+
+summary(glm(zeitlich_ws$Wissenschaft_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$Behoerde_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$Wirtschaft_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$Verbaende_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$Medien_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$keine_Angabe_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$Bildung_rel ~ zeitlich_ws$Workshop))
+summary(glm(zeitlich_ws$Kirche_rel ~ zeitlich_ws$Workshop))
 ```
 
 ```{r zeitlich, eval=FALSE}
@@ -789,7 +801,7 @@ plot(zeitlich$Wissenschaft ~ zeitlich$Jahr, col = rgb(92,139,255,max=255),
      xlab = "Jahr",
      ylab = "Anzahl Institutionen",
      pch = 4,
-     ylim = c(0,55))
+     ylim = c(0,150))
 points(zeitlich$Behoerde ~ jitter(zeitlich$Jahr, .1), col = rgb(219,174,0,max=255), pch = 4)
 points(zeitlich$Wirtschaft ~ jitter(zeitlich$Jahr, .1), col = rgb(11,33,94,max=255), pch = 4)
 points(zeitlich$Verbaende ~ jitter(zeitlich$Jahr, .1), col = rgb(0,155,68,max=255), pch = 4)
