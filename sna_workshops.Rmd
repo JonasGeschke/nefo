@@ -677,6 +677,7 @@ zeitlich_ws$Kirche_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Kirche
 
 #xlsx::write.xlsx(zeitlich_ws, file = "workshops_zeitlich_2.xlsx") ### EDIT
 
+zeitlich_ws <- zeitlich_ws[-42,]
 ```
 
 
