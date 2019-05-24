@@ -444,8 +444,8 @@ create_links_workshops_2mode <- function(Gdata){
 library(xlsx)
 
 ## Load raw data
-Raw_workshops <- read.xlsx(file = "Daten/workshopdaten_20190219.xlsx", sheetIndex = 1, encoding="UTF-8")
-Raw_workshops_info <- read.xlsx(file = "Daten/workshopdaten_20190219.xlsx", sheetIndex = 2, encoding="UTF-8")
+Raw_workshops <- read.xlsx(file = "Daten/workshopdaten_20190219_nefo.xlsx", sheetIndex = 1, encoding="UTF-8")
+Raw_workshops_info <- read.xlsx(file = "Daten/workshopdaten_20190219_nefo.xlsx", sheetIndex = 2, encoding="UTF-8")
 
 setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_Projekte/R")
 abbr <- read.csv2(file = "abbr.csv", na.strings = "", sep=";", dec=",", header=T, stringsAsFactors = FALSE)
@@ -457,17 +457,15 @@ detach("package:xlsx", unload=TRUE)
 ```{r Vorbereitung der Daten - RUN, eval=FALSE}
 ## Edit WS info
 WS_info <- Raw_workshops_info
-WS_info <- WS_info[,-c(6,9:ncol(WS_info))]
+WS_info <- WS_info[,-c(4,7:ncol(WS_info))]
 WS_info$ID <- as.character(WS_info$ID)
-WS_info$Biodiv <- as.character(WS_info$Biodiv)
-WS_info$IPBES <- as.character(WS_info$IPBES)
 WS_info$Workshop <- as.character(WS_info$Workshop)
 WS_info$Jahr <- as.character(WS_info$Jahr)
 WS_info$Ort <- as.character(WS_info$Ort)
 
-## Prepare datasets "WS"
+## Prepare dataset "WS"
 Gdata_WS <- Raw_workshops
-Gdata_WS <- Gdata_WS[-which(is.na(Gdata_WS$Institutionskürzel..aktuell....von.uns.vergeben)),-c(57:ncol(Gdata_WS))] # Zeilen und Spalten loeschen
+Gdata_WS <- Gdata_WS[-which(is.na(Gdata_WS$Institutionskürzel..aktuell....von.uns.vergeben)),-c(53:ncol(Gdata_WS))] # Zeilen und Spalten loeschen
 names(Gdata_WS) <- c("Titel", "cutoff", "Name", "Inst", "Land",
                   "Inst_lang", "addinfo", "Kategorie", "Inst_alt", "Kontakt", 
                   "WS1", "WS2", "WS3", "WS4", "WS5", 
@@ -478,7 +476,7 @@ names(Gdata_WS) <- c("Titel", "cutoff", "Name", "Inst", "Land",
                   "WS26", "WS27", "WS28", "WS29", "WS30",
                   "WS31", "WS32", "WS33", "WS34", "WS35",
                   "WS36", "WS37", "WS38", "WS39", "WS40", 
-                  "WS41", "WS42", "WS43", "WS44", "WS45", "WS47")
+                  "WS41", "WS42")
 Gdata_WS <- Gdata_WS[,-c(1,6,7,9,10)]
 Gdata_WS <- Gdata_WS[-c(which(Gdata_WS$cutoff == "1")),] # Institutswechsel Zeilen loeschen
 Gdata_WS <- Gdata_WS[,-1] # Cutoff loeschen
@@ -510,11 +508,47 @@ rm(c, columnno5, r, rowno)
 
 unique(Gdata_WS$Kategorie)
 length(unique(Gdata_WS$Kategorie))
+
+
+## Prepare anonymous dataset
+names <- unique(Gdata_WS$Name)
+anonym <- c(paste("NN", c(1:length(names)), sep = ""))
+Gdata_anonym <- Gdata_WS
+for(i in 1:nrow(Gdata_anonym)){
+  for(n in 1:length(names)){
+    if(Gdata_anonym[i,1] == names[n]){
+      Gdata_anonym[i,1] <- anonym[n]}
+  }
+}
+names(Gdata_anonym) <- c("name", "inst", "country", "category",
+                         "WS1", "WS2", "WS3", "WS4", "WS5",
+                         "WS6", "WS7", "WS8", "WS9", "WS10",
+                         "WS11", "WS12", "WS13", "WS14", "WS15",
+                         "WS16", "WS17", "WS18", "WS19", "WS20",
+                         "WS21", "WS22", "WS23", "WS24", "WS25", 
+                         "WS26", "WS27", "WS28", "WS29", "WS30",
+                         "WS31", "WS32", "WS33", "WS34", "WS35",
+                         "WS36", "WS37", "WS38", "WS39", "WS40", 
+                         "WS41", "WS42")
+Gdata_anonym$country <- countrycode::countrycode(sourcevar = Gdata_anonym$country, origin = 'country.name.de', destination = 'un.name.en')
+for (r in 1:nrow(Gdata_anonym)){
+  if (Gdata_anonym[r,4] == "keine Angabe"){Gdata_anonym[r,4] <- "Others"}
+  if (Gdata_anonym[r,4] == "Behoerde"){Gdata_anonym[r,4] <- "Public authority"}
+  if (Gdata_anonym[r,4] == "Verbaende"){Gdata_anonym[r,4] <- "NGOs"}
+  if (Gdata_anonym[r,4] == "Wissenschaft"){Gdata_anonym[r,4] <- "Science"}
+  if (Gdata_anonym[r,4] == "Wirtschaft"){Gdata_anonym[r,4] <- "Industry"}
+  if (Gdata_anonym[r,4] == "Medien"){Gdata_anonym[r,4] <- "Media"}
+  if (Gdata_anonym[r,4] == "Bildung"){Gdata_anonym[r,4] <- "Education"}
+  if (Gdata_anonym[r,4] == "Kirche"){Gdata_anonym[r,4] <- "Church"}
+}
+rm(r, i, n, names, anonym)
+unique(Gdata_anonym$category)
+#xlsx::write.xlsx(Gdata_anonym, file = "workshopdata_anonymous.xls") ### EDIT
+
 ```
 
 ```{r Subset der Daten, eval=FALSE}
 Gdata <- subset_workshops(Gdata_WS, subset = c(2010:2018))
-# ipbesforen, nefo, nefobiodiv, nefoipbes, 2010, 2011, 2012, 2103, 2014, 2015, 2016, 2017, 2018, 2010-2011, 2010-2012, 2010-2013, 2010-2014, 2010-2015, 2010-2016, 2010-2017, 2010-2018, 2010-2019
 ```
 
 ```{r Graph-objects, eval=FALSE}
@@ -571,7 +605,7 @@ detach("package:igraph", unload=TRUE)
 clp10000 <- clp_model(ws2, times = 1000, value = "mostoften")
 clp <- clp10000
 V(ws2)$community_model <- membership(clp)
-WS_info[c(1:23,25:27,29:30,32:38,40:45,47),8] <- V(ws2)$community_model[1:42]
+WS_info[c(1:41,43),8] <- c(V(ws2)$community_model[1:41],NA,V(ws2)$community_model[42])
 ```
 
 
@@ -645,9 +679,10 @@ for (ws in c(WS_av$ID)){
 sum(WS_av[which(WS_av$Jahr == "2018"),8])
 
 zeitlich_ws <- xlsx::read.xlsx(file = "Ergebnisse/zeitlich/workshops_zeitlich.xlsx", sheetIndex = 2, encoding="UTF-8")
+zeitlich_ws <- zeitlich_ws[-43,]
 workshops <- c(paste("WS", zeitlich_ws[,1], sep = ""))
 rows <- c(1:nrow(zeitlich_ws))
-rows <- rows[-42]
+#rows <- rows[-42]
 for (r in rows){
   ws <- paste("WS", zeitlich_ws[r,1], sep = "")
   ss <- subset(links_ws1, links_ws1$network == ws)
@@ -677,7 +712,6 @@ zeitlich_ws$Kirche_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Kirche
 
 #xlsx::write.xlsx(zeitlich_ws, file = "workshops_zeitlich_2.xlsx") ### EDIT
 
-zeitlich_ws <- zeitlich_ws[-42,]
 ```
 
 
@@ -730,7 +764,7 @@ text(cex=1, x=max(xy)+3, y=mean(zeitlich_ws$Wissenschaft_rel, na.rm = TRUE), "Ø
 text(cex=1, x=max(xy)+3, y=50, "50%", xpd=TRUE, pos = 4)
 text(cex=1, x=-2, y=-5, "%", xpd=TRUE, srt=90)
 text(cex=1, x=xy, y=-5, workshops, xpd=TRUE, srt=90)
-text(cex=0.8, x=xy[42], y=5, "No data", xpd=TRUE, srt=90)
+#text(cex=0.8, x=xy[42], y=5, "No data", xpd=TRUE, srt=90)
 legend("bottomright", inset=c(-0.38,0),
        legend = c("Others", "Church", "Education", "Media", "NGOs", "Industry", "Public authority", "Science"),
        fill = c(rgb(255,161,213,max=255),
@@ -769,7 +803,7 @@ text(cex=1, x=max(xy)+3, y=mean(zeitlich_ws$Wissenschaft_rel, na.rm = TRUE), "Ø
 text(cex=1, x=max(xy)+3, y=50, "50%", xpd=TRUE, pos = 4)
 text(cex=1, x=-2, y=-5, "%", xpd=TRUE, srt=90)
 text(cex=1, x=xy, y=-5, workshops, xpd=TRUE, srt=90)
-text(cex=0.8, x=xy[42], y=5, "No data", xpd=TRUE, srt=90)
+#text(cex=0.8, x=xy[42], y=5, "No data", xpd=TRUE, srt=90)
 legend("bottomright", inset=c(-0.38,0),
        legend = c("Others", "Church", "Education", "Media", "NGOs", "Industry", "Public authority", "Science"),
        fill = c(rgb(255,161,213,max=255),
@@ -993,7 +1027,7 @@ farben_ws1 <- coul7[palette_ws1]
 #farben_ws1 <- coul7[palette_ws1]
 
 # Plotten
-lyout_ws <- layout.fruchterman.reingold(ws2)
+#lyout_ws <- layout.fruchterman.reingold(ws2)
 
 ## Farben und Größe
 E(ws2)$color_st <- "grey"
@@ -1066,11 +1100,11 @@ legend(-1.8,-0.2, title = "Cluster descriptition", legend = c("Biodiversity rese
                                                            "WS10: International expert workshop for IPBES",
                                                            "WS18: PESC-1", 
                                                            "WS23: PESC-2", 
-                                                           "WS29: PESC-3", 
-                                                           "WS34: PESC-4",
-                                                           "WS41: PESC-5",
-                                                           "WS40: Evening event on the concept of nature",
-                                                           "WS44: Evening event on the human-nature relationship"), 
+                                                           "WS27: PESC-3", 
+                                                           "WS31: PESC-4",
+                                                           "WS37: PESC-5",
+                                                           "WS36: Evening event on the concept of nature",
+                                                           "WS40: Evening event on the human-nature relationship"), 
        fill = c("green", "blue", "#7947d5", "#739fcd", "#4d378f", "#867dd6", "#494f7d", "khaki", "peru"), # 7 und 8 vertauscht
        border = NA,
        bty = "n")
