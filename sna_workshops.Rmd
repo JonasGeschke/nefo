@@ -717,7 +717,6 @@ zeitlich_ws$Kirche_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Kirche
 ```
 
 
-
 # Visualisierung
 
 ```{r Anzahl Institutionen pro Kategorie, eval=FALSE}
@@ -746,6 +745,37 @@ text(x = plot, y = plotK$n, label = plotK$n, pos = 3, cex = 1.5, col = "black") 
 
 detach("package:igraph", unload=TRUE)
 ```
+
+```{r Anzahl Institutionen pro Jahr, eval=FALSE}
+zeitlich_inst <- vector()
+for(w in 1:length(workshops)){
+  zeitlich_inst <- c(zeitlich_inst, length(unique(links_ws2$to[links_ws2$workshop %in% workshops[c(1:w)]])))}
+plot(1:length(workshops),zeitlich_inst,
+     xlab="Workshops", ylab="Number of participating institutions", main="Number of institutions over time",
+     type="l", pch = 4)
+Linear <- lm(zeitlich_inst ~ c(1:length(workshops)))
+Linear_P <- predict(Linear, int="c", level = 0.95)
+lines(ts(Linear_P[,1]), col = "red", lwd=2)
+lines(ts(Linear_P[,2]), col = "green", lty=3, lwd=2)
+lines(ts(Linear_P[,3]), col = "green", lty=3, lwd=2)
+summary(Linear)
+
+zeitlich_inst_surplus <- c(zeitlich_inst[1])
+for(w in 2:length(workshops)){
+  zeitlich_inst_surplus <- c(zeitlich_inst_surplus, (zeitlich_inst[w]-zeitlich_inst[w-1]))}
+plot(1:length(workshops),zeitlich_inst_surplus, 
+     xlab="Workshops", ylab="Number of additional participating institutions", main="Number of institutions over time",
+     type="l", pch = 4)
+Linear <- lm(zeitlich_inst_surplus ~ c(1:length(workshops)))
+Linear_P <- predict(Linear, int="c", level = 0.95)
+lines(ts(Linear_P[,1]), col = "red", lwd=2)
+lines(ts(Linear_P[,2]), col = "green", lty=3, lwd=2)
+lines(ts(Linear_P[,3]), col = "green", lty=3, lwd=2)
+summary(Linear)
+
+
+```
+
 
 ```{r Prozentual Institutionen pro Kategorie - Barplot, eval=FALSE}
 workshops_prop <- t(prop.table(t(zeitlich_ws[,c(2,3,4,5,6,8,9,7)]), 2)*100)
