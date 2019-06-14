@@ -549,6 +549,11 @@ unique(Gdata_anonym$category)
 
 ```{r Subset der Daten, eval=FALSE}
 Gdata <- subset_workshops(Gdata_WS, subset = c(2010:2018))
+
+nefo1 <- subset_workshops(Gdata_WS, subset = c(2010:2012))
+nefo2 <- subset_workshops(Gdata_WS, subset = c(2010:2014))
+nefo2 <- nefo2[,-c(27,28)]
+nefo2 <- nefo2[-c(which(rowSums(nefo2[,c(5:26)])==0)),]
 ```
 
 ```{r Graph-objects, eval=FALSE}
