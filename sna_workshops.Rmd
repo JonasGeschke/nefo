@@ -31,8 +31,7 @@ Die Netzwerkanalyse selbst ist verfügbar unter http://www.biodiversity.de/produ
 # 
 # setwd("")
 
-#setwd("/Volumes/NO NAME/MfN/Netzwerkanalyse_NeFo/R") # Stick
-setwd("Z:/Benutzer/Jonas.Geschke/Netzwerkanalyse_NeFo/R") # Buero
+setwd("/Volumes/NO NAME/MfN/Netzwerkanalyse_NeFo/R") # Stick
 ```
 
 ```{r install packages, eval=FALSE}
@@ -1151,19 +1150,23 @@ plot(clp, ws2, vertex.size = V(ws2)$vertex.size, col = V(ws2)$comm_col, vertex.s
      mark.border = NA, mark.col = NA,
      edge.arrow.size = 0, edge.color = E(ws2)$color_k,
      layout = lyout_ws, add = TRUE)
-legend(-1.8,-0.2, title = "Communities", legend = c("Biodiversity science-policy-interface Germany", 
-                                                           "WS10: International expert workshop for IPBES",
-                                                           "WS18: PESC-1", 
-                                                           "WS23: PESC-2", 
-                                                           "WS27: PESC-3", 
-                                                           "WS31: PESC-4",
-                                                           "WS37: PESC-5",
-                                                           "WS36: Evening event on the concept of nature",
-                                                           "WS40: Evening event on the human-nature relationship"), 
+
+plot(NULL,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+#-1.8,-0.2
+legend(0,1, title = "Communities", legend = c("Biodiversity science-policy-interface Germany", 
+                                                           "International expert workshop for IPBES (WS10)",
+                                                           "1st Pan-European IPBES Stakeholder Consultation (PESC-1; WS18)", 
+                                                           "2nd Pan-European IPBES Stakeholder Consultation (PESC-2; WS23)", 
+                                                           "3rd Pan-European IPBES Stakeholder Consultation (PESC-3; WS27)", 
+                                                           "4th Pan-European IPBES Stakeholder Consultation (PESC-4; WS31)",
+                                                           "5th Pan-European IPBES Stakeholder Consultation (PESC-5; WS37)",
+                                                           "Evening event on the concept of nature (WS36)",
+                                                           "Evening event on the human-nature relationship (WS40)"), 
        fill = c("green", "blue", "#7947d5", "#739fcd", "#4d378f", "#867dd6", "#494f7d", "khaki", "peru"), # 7 und 8 vertauscht
        border = NA,
        bty = "n")
-legend(-1.8,1.2, title = "General network features", 
+#-1.8,1.2
+legend(0,0.4, title = "General network features", 
        legend = c("Workshops", "Institutions", ">5 participants", "2-5 participants", "1 participant"),
        pch = c(22,1,NA,NA,NA),
        pt.bg = c("dark grey",NA,NA,NA,NA),
