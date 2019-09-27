@@ -528,7 +528,7 @@ WS_info$Ort <- as.character(WS_info$Ort)
 
 ## Prepare dataset "WS"
 Gdata_WS <- Raw_workshops
-Gdata_WS <- Gdata_WS[-which(is.na(Gdata_WS$Institutionskürzel..aktuell....von.uns.vergeben)),-c(53:ncol(Gdata_WS))] # Zeilen und Spalten loeschen
+Gdata_WS <- Gdata_WS[-which(is.na(Gdata_WS[,4])),-c(53:ncol(Gdata_WS))] # Zeilen und Spalten loeschen
 names(Gdata_WS) <- c("Titel", "cutoff", "Name", "Inst", "Land",
                   "Inst_lang", "addinfo", "Kategorie", "Inst_alt", "Kontakt", 
                   "WS1", "WS2", "WS3", "WS4", "WS5", 
@@ -599,7 +599,7 @@ for (r in 1:nrow(Gdata_anonym)){
   if (Gdata_anonym[r,4] == "Behoerde"){Gdata_anonym[r,4] <- "Public authority"}
   if (Gdata_anonym[r,4] == "Verbaende"){Gdata_anonym[r,4] <- "NGOs"}
   if (Gdata_anonym[r,4] == "Wissenschaft"){Gdata_anonym[r,4] <- "Science"}
-  if (Gdata_anonym[r,4] == "Wirtschaft"){Gdata_anonym[r,4] <- "Industry"}
+  if (Gdata_anonym[r,4] == "Wirtschaft"){Gdata_anonym[r,4] <- "Business"}
   if (Gdata_anonym[r,4] == "Medien"){Gdata_anonym[r,4] <- "Media"}
   if (Gdata_anonym[r,4] == "Bildung"){Gdata_anonym[r,4] <- "Education"}
   if (Gdata_anonym[r,4] == "Kirche"){Gdata_anonym[r,4] <- "Church"}
@@ -803,6 +803,27 @@ zeitlich_ws$Kirche_rel <- round(100/zeitlich_ws$Institutionen*zeitlich_ws$Kirche
 
 
 # Visualisierung
+
+```{r Länder Karte, eval=FALSE}
+if("countrycode" %in% rownames(installed.packages())   == FALSE){
+  install.packages("countrycode")}
+if("rworldmap" %in% rownames(installed.packages())   == FALSE){
+  install.packages("rworldmap")}
+library(countrycode)
+library(rworldmap)
+
+Raw_countries <- xlsx::read.xlsx(file = "countries.xlsx", sheetIndex = 1, encoding="UTF-8")
+Raw_countries$CC <- as.factor(countrycode::countrycode(Raw_countries$country, origin = "country.name", destination = "genc2c"))
+
+countries <- Raw_countries[-c(533:nrow(Raw_countries)),-c(2,3)]
+countries <- joinCountryData2Map(countries, joinCode = "ISO2", nameJoinColumn = "Var1")
+cols <- RColorBrewer::brewer.pal(4, "YlGn")
+mapCountryData(countries_all, mapRegion = "world",
+               nameColumnToPlot = "Freq", numCats = 4, catMethod = "fixedWidth",
+               colourPalette = cols, missingCountryCol = "white", oceanCol = "light blue",
+               addLegend = T, mapTitle = "Where IPBES authors are from \n - all assessments completed by 2018 -")
+```
+
 
 ```{r Anzahl Institutionen pro Kategorie, eval=FALSE}
 library(igraph)
